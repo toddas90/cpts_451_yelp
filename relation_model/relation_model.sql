@@ -63,6 +63,7 @@ CREATE TABLE Buisness(
     stars REAL,
     tipCount INTEGER,
     isOpen BOOLEAN,
+    attributes VARCHAR, --list of attribute key words, I *think* this will be cleaner looking rather than a more tables for each individual attribute.
     PRIMARY KEY (buisnessID)
     CHECK (stars>=0, tipCount>=0)
 );
@@ -76,6 +77,7 @@ CREATE TABLE Restaurant(
     dinner BOOLEAN,
     dessert BOOLEAN,
     lateNight BOOLEAN,
+    --might lump meal times into one list like attributes and ambiance 
     ambiance VARCHAR, --list of ambiances 
     PRIMARY KEY (buisnessID),
     FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
