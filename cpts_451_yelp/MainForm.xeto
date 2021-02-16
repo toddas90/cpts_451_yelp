@@ -2,13 +2,17 @@
 <Form
 	xmlns="http://schema.picoe.ca/eto.forms" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	Title="My Eto Form"
-	MinimumSize="200,200"
+	Title="Yelp App"
+	MinimumSize="600,400"
 	Padding="10"
 	>
-	<StackLayout>
-		<Label>Some Content</Label>
-	</StackLayout>
+	<Grid>
+        <Label x:Name="stateLabel" Content="State" HorizontalAlignment="Left" Margin="110,40,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="cityLabel" Content="City" HorizontalAlignment="Left" Margin="110,80,0,0" VerticalAlignment="Top"/>
+        <Combobox x:Name="stateList" HorizontalAlignment="Left" Margin="190,39,0,0" FontSize="14" VerticalAlignment="Top" Width="240"/>
+        <Combobox x:Name="cityList" HorizontalAlignment="Left" Margin="190,80,0,0" FontSize="14" VerticalAlignment="Top" Width="240"/>
+        <DataGrid x:Name="businessGrid" HorizontalAlignment="Left" Height="285" Margin="60,125,0,0" VerticalAlignment="Top" Width="475"/>
+	</Grid>
 
 	<Form.Menu>
 		<MenuBar>

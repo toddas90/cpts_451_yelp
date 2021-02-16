@@ -5,27 +5,35 @@ using Eto.Drawing;
 using Eto.Serialization.Xaml;
 
 namespace cpts_451_yelp
-{	
-	public class MainForm : Form
-	{	
-		public MainForm()
-		{
-			XamlReader.Load(this);
-		}
+{
+    public class MainForm : Form
+    {
+        public MainForm()
+        {
+            XamlReader.Load(this);
+            addState();
+        }
 
-		protected void HandleClickMe(object sender, EventArgs e)
-		{
-			MessageBox.Show("I was clicked!");
-		}
+        private void addState()
+        {
+            //stateList.Item.Add("CA");
+            //stateList.Item.Add("ID");
+            //stateList.Item.Add("WA");
+        }
 
-		protected void HandleAbout(object sender, EventArgs e)
-		{
-			new AboutDialog().ShowDialog(this);
-		}
+        protected void HandleClickMe(object sender, EventArgs e)
+        {
+            MessageBox.Show("I was clicked!");
+        }
 
-		protected void HandleQuit(object sender, EventArgs e)
-		{
-			Application.Instance.Quit();
-		}
-	}
+        protected void HandleAbout(object sender, EventArgs e)
+        {
+            new AboutDialog().ShowDialog(this);
+        }
+
+        protected void HandleQuit(object sender, EventArgs e)
+        {
+            Application.Instance.Quit();
+        }
+    }
 }
