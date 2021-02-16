@@ -12,7 +12,6 @@ namespace cpts_451_yelp
         DropDown cityList = new DropDown();
         GridView grid = new GridView<Business> { AllowMultipleSelection = false };
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
-
         public event EventHandler<EventArgs> SelectedValueChanged; // Event handler for the dropdown event
         public class Business
         {
@@ -27,100 +26,86 @@ namespace cpts_451_yelp
             MinimumSize = new Size(600, 400); // Default resolution
 
             createUI(); // Puts everything where it belongs
-            this.Content = layout; // Instantiates the layout
-            addState(); // Put states in drop down
             addColGrid(); // Creates the data grid
-            stateList.SelectedValueChanged += new EventHandler<EventArgs>(addCity);
-            cityList.SelectedValueChanged += new EventHandler<EventArgs>(addBusiness);
+            this.Content = layout; // Instantiates the layout
+
+            queryState(); // Put states in drop down
+            stateList.SelectedValueChanged += new EventHandler<EventArgs>(queryCity);
+            cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
+        }
+
+        private void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf)
+        {
+            using (var connection = new NpgsqlConnection(connectionInfo()))
+            {
+                connection.Open();
+                using (var cmd = new NpgsqlCommand())
+                {
+                    cmd.Connection = connection;
+                    cmd.CommandText = sqlstr;
+                    try
+                    {
+                        Console.WriteLine("Executing Query: " + sqlstr); // For debugging
+                        var reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                            myf(reader);
+                    }
+                    catch (NpgsqlException ex)
+                    {
+                        Console.WriteLine(ex.Message.ToString());
+                        MessageBox.Show("SQL Error - " + ex.Message.ToString());
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                }
+            }
         }
 
         private string connectionInfo()
         {
             return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
         }
-        public void addState()
-        {
-            var connection = new NpgsqlConnection(connectionInfo());
-            connection.Open();
-            var command = new NpgsqlCommand();
-
-            command.Connection = connection;
-            command.CommandText = "SELECT distinct state FROM business ORDER BY state";
-            try
-            {
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                    stateList.Items.Add(reader.GetString(0));
-            }
-            catch (NpgsqlException ex)
-            {
-                Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("SQL Error -  " + ex.Message.ToString());
-            }
-            finally
-            {
-                connection.Close();
-            }
-        }
-        public void addCity(object sender, EventArgs e)
+        public void queryState()
         {
             cityList.Items.Clear();
+            data.Clear();
+
+            string cmd = "SELECT distinct state FROM business ORDER BY state";
+            executeQuery(cmd, queryStateHelper);
+        }
+        public void queryCity(object sender, EventArgs e)
+        {
+            cityList.Items.Clear();
+            data.Clear();
             if (stateList.SelectedIndex > -1)
             {
-                var connection = new NpgsqlConnection(connectionInfo());
-                connection.Open();
-                var command = new NpgsqlCommand();
-
-                command.Connection = connection;
-                command.CommandText = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
-                try
-                {
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
-                        cityList.Items.Add(reader.GetString(0));
-                }
-                catch (NpgsqlException ex)
-                {
-                    Console.WriteLine(ex.Message.ToString());
-                    MessageBox.Show("SQL Error -  " + ex.Message.ToString());
-                }
-                finally
-                {
-                    connection.Close();
-                }
+                string cmd = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
+                executeQuery(cmd, queryCityHelper);
             }
         }
-
-        public void addBusiness(object sender, EventArgs e)
+        public void queryBusiness(object sender, EventArgs e)
         {
             data.Clear();
             if (cityList.SelectedIndex > -1)
             {
-                var connection = new NpgsqlConnection(connectionInfo());
-                connection.Open();
-                var command = new NpgsqlCommand();
-
-                command.Connection = connection;
-                command.CommandText = "SELECT name, state, city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
-                try
-                {
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
-                    {
-                        data.Add(new Business() { name = reader.GetString(0), state = reader.GetString(1), city = reader.GetString(2) });
-                    }
-                    grid.DataStore = data;
-                }
-                catch (NpgsqlException ex)
-                {
-                    Console.WriteLine(ex.Message.ToString());
-                    MessageBox.Show("SQL Error -  " + ex.Message.ToString());
-                }
-                finally
-                {
-                    connection.Close();
-                }
+                string cmd = "SELECT name, state, city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
+                executeQuery(cmd, queryBusinessHelper);
+                grid.DataStore = data;
             }
+        }
+        private void queryStateHelper(NpgsqlDataReader R)
+        {
+            stateList.Items.Add(R.GetString(0));
+        }
+        private void queryCityHelper(NpgsqlDataReader R)
+        {
+            cityList.Items.Add(R.GetString(0));
+        }
+        private void queryBusinessHelper(NpgsqlDataReader R)
+        {
+            data.Add(new Business() { name = R.GetString(0), state = R.GetString(1), city = R.GetString(2) });
         }
         protected virtual void OnSelectedValueChanged() // I think this should activate when the stateList dropdown is changed?
         {
