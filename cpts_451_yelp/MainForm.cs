@@ -10,7 +10,9 @@ namespace cpts_451_yelp
         TableLayout layout = new TableLayout();
         DropDown stateList = new DropDown();
         DropDown cityList = new DropDown();
-        GridView grid = new GridView { AllowMultipleSelection = false };
+        GridView grid = new GridView<Business> { AllowMultipleSelection = false };
+        DataStoreCollection<Business> data = new DataStoreCollection<Business>();
+
         public event EventHandler<EventArgs> SelectedValueChanged; // Event handler for the dropdown event
         public class Business
         {
@@ -29,6 +31,7 @@ namespace cpts_451_yelp
             addState(); // Put states in drop down
             addColGrid(); // Creates the data grid
             stateList.SelectedValueChanged += new EventHandler<EventArgs>(addCity);
+            cityList.SelectedValueChanged += new EventHandler<EventArgs>(addBusiness);
         }
 
         private string connectionInfo()
@@ -61,26 +64,62 @@ namespace cpts_451_yelp
         }
         public void addCity(object sender, EventArgs e)
         {
-            var connection = new NpgsqlConnection(connectionInfo());
-            connection.Open();
-            var command = new NpgsqlCommand();
+            cityList.Items.Clear();
+            if (stateList.SelectedIndex > -1)
+            {
+                var connection = new NpgsqlConnection(connectionInfo());
+                connection.Open();
+                var command = new NpgsqlCommand();
 
-            command.Connection = connection;
-            command.CommandText = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
-            try
-            {
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                    cityList.Items.Add(reader.GetString(0));
+                command.Connection = connection;
+                command.CommandText = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                        cityList.Items.Add(reader.GetString(0));
+                }
+                catch (NpgsqlException ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                    MessageBox.Show("SQL Error -  " + ex.Message.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
-            catch (NpgsqlException ex)
+        }
+
+        public void addBusiness(object sender, EventArgs e)
+        {
+            data.Clear();
+            if (cityList.SelectedIndex > -1)
             {
-                Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("SQL Error -  " + ex.Message.ToString());
-            }
-            finally
-            {
-                connection.Close();
+                var connection = new NpgsqlConnection(connectionInfo());
+                connection.Open();
+                var command = new NpgsqlCommand();
+
+                command.Connection = connection;
+                command.CommandText = "SELECT name, state, city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
+                try
+                {
+                    var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        data.Add(new Business() { name = reader.GetString(0), state = reader.GetString(1), city = reader.GetString(2) });
+                    }
+                    grid.DataStore = data;
+                }
+                catch (NpgsqlException ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                    MessageBox.Show("SQL Error -  " + ex.Message.ToString());
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
         }
         protected virtual void OnSelectedValueChanged() // I think this should activate when the stateList dropdown is changed?
@@ -90,9 +129,9 @@ namespace cpts_451_yelp
         }
         private void addColGrid() // Adds columns to the graph view
         {
-            grid.Columns.Add(new GridColumn { HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
         }
         public void createUI() // Parameters for the UI Elements, probably add the columns to this later?
         {
