@@ -7,29 +7,35 @@ namespace cpts_451_yelp
 {
     public partial class MainForm : Form
     {
-        public event EventHandler<EventArgs> DropDownClosed; // Event handler for the dropdown event
+        TableLayout layout = new TableLayout();
+        DropDown stateList = new DropDown();
+        DropDown cityList = new DropDown();
+        GridView grid = new GridView { AllowMultipleSelection = false };
+        public event EventHandler<EventArgs> SelectedValueChanged; // Event handler for the dropdown event
         public class Business
         {
             public string name { get; set; }
             public string state { get; set; }
             public string city { get; set; }
         }
+
         public MainForm() // Main Form
         {
             Title = "Yelp App"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
 
-            var layout = new TableLayout(); // Create the TableLayout
-            var stateList = new DropDown(); // Create the state drop down menu
-            var cityList = new DropDown(); // Create the city drop down menu
-            var grid = new GridView { AllowMultipleSelection = false }; // Create the data grid
-
-            createUI(layout, stateList, cityList, grid); // Puts everything where it belongs
+            createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
-            addState(stateList); // Put states in drop down
-            addColGrid(grid); // Creates the data grid
+            addState(); // Put states in drop down
+            addColGrid(); // Creates the data grid
+            stateList.SelectedValueChanged += new EventHandler<EventArgs>(addCity);
         }
-        private void addState(DropDown stateList)
+
+        private string connectionInfo()
+        {
+            return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
+        }
+        public void addState()
         {
             var connection = new NpgsqlConnection(connectionInfo());
             connection.Open();
@@ -53,14 +59,14 @@ namespace cpts_451_yelp
                 connection.Close();
             }
         }
-        protected virtual void OnDropDownClosed(EventArgs e, DropDown cityList, DropDown stateList) // I think this should activate when the stateList dropdown is closed?
+        public void addCity(object sender, EventArgs e)
         {
             var connection = new NpgsqlConnection(connectionInfo());
             connection.Open();
             var command = new NpgsqlCommand();
 
             command.Connection = connection;
-            command.CommandText = "SELECT distinct city FROM business WHERE state = " + stateList.SelectedValue.ToString() + " ORDER BY city";
+            command.CommandText = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
             try
             {
                 var reader = command.ExecuteReader();
@@ -77,17 +83,18 @@ namespace cpts_451_yelp
                 connection.Close();
             }
         }
-        private string connectionInfo()
+        protected virtual void OnSelectedValueChanged() // I think this should activate when the stateList dropdown is changed?
         {
-            return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
+            EventHandler<EventArgs> handler = SelectedValueChanged;
+            if (null != Handler) handler(this, EventArgs.Empty);
         }
-        private void addColGrid(GridView grid) // Adds columns to the graph view
+        private void addColGrid() // Adds columns to the graph view
         {
             grid.Columns.Add(new GridColumn { HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
             grid.Columns.Add(new GridColumn { HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
             grid.Columns.Add(new GridColumn { HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
         }
-        public void createUI(TableLayout layout, DropDown stateList, DropDown cityList, GridView grid) // Parameters for the UI Elements, probably add the columns to this later?
+        public void createUI() // Parameters for the UI Elements, probably add the columns to this later?
         {
             grid.Size = new Size(465, 300);
             layout.Spacing = new Size(5, 5);
