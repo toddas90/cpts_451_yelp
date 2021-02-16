@@ -53,13 +53,14 @@ namespace cpts_451_yelp
                 connection.Close();
             }
         }
-        private void stateList_DropDownClosed(object sender, EventArgs e, DropDown cityList, DropDown stateList)
+        protected virtual void OnDropDownClosed(EventArgs e, DropDown cityList, DropDown stateList)
         {
             var connection = new NpgsqlConnection(connectionInfo());
             connection.Open();
             var command = new NpgsqlCommand();
+
             command.Connection = connection;
-            command.CommandText = "SELECT distinct city FROM business WHERE state = " + stateList.SelectedValue.ToString() + " ORDER BY city"; // Broken line
+            command.CommandText = "SELECT distinct city FROM business WHERE state = " + stateList.SelectedValue.ToString() + " ORDER BY city";
             try
             {
                 var reader = command.ExecuteReader();
@@ -76,12 +77,10 @@ namespace cpts_451_yelp
                 connection.Close();
             }
         }
-
         private string connectionInfo()
         {
             return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
         }
-
         private void addColGrid(GridView grid)
         {
             grid.Columns.Add(new GridColumn { HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
