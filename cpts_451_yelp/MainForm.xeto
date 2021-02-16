@@ -3,10 +3,10 @@
 	xmlns="http://schema.picoe.ca/eto.forms" 
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	Title="Yelp App"
-	MinimumSize="600,400"
+	MinimumSize="400,600"
 	Padding="10"
 	>
-	<Grid>
+    <Grid>
         <Label x:Name="stateLabel" Content="State" HorizontalAlignment="Left" Margin="110,40,0,0" VerticalAlignment="Top"/>
         <Label x:Name="cityLabel" Content="City" HorizontalAlignment="Left" Margin="110,80,0,0" VerticalAlignment="Top"/>
         <Combobox x:Name="stateList" HorizontalAlignment="Left" Margin="190,39,0,0" FontSize="14" VerticalAlignment="Top" Width="240"/>
