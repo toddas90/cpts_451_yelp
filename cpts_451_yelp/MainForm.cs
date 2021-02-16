@@ -7,7 +7,7 @@ namespace cpts_451_yelp
 {
     public partial class MainForm : Form
     {
-        public event EventHandler<EventArgs> DropDownClosed;
+        public event EventHandler<EventArgs> DropDownClosed; // Event handler for the dropdown event
         public class Business
         {
             public string name { get; set; }
@@ -53,7 +53,7 @@ namespace cpts_451_yelp
                 connection.Close();
             }
         }
-        protected virtual void OnDropDownClosed(EventArgs e, DropDown cityList, DropDown stateList)
+        protected virtual void OnDropDownClosed(EventArgs e, DropDown cityList, DropDown stateList) // I think this should activate when the stateList dropdown is closed?
         {
             var connection = new NpgsqlConnection(connectionInfo());
             connection.Open();
@@ -81,13 +81,13 @@ namespace cpts_451_yelp
         {
             return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
         }
-        private void addColGrid(GridView grid)
+        private void addColGrid(GridView grid) // Adds columns to the graph view
         {
             grid.Columns.Add(new GridColumn { HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
             grid.Columns.Add(new GridColumn { HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
             grid.Columns.Add(new GridColumn { HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
         }
-        public void createUI(TableLayout layout, DropDown stateList, DropDown cityList, GridView grid)
+        public void createUI(TableLayout layout, DropDown stateList, DropDown cityList, GridView grid) // Parameters for the UI Elements, probably add the columns to this later?
         {
             grid.Size = new Size(465, 300);
             layout.Spacing = new Size(5, 5);
