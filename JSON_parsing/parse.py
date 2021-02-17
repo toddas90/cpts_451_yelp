@@ -2,6 +2,22 @@ import json
 
 def cleanStr4SQL(s):
     return s.replace("'","`").replace("\n"," ")
+    
+def parseAttributes(d, outfile):
+    for key in d.keys():
+        outfile.write('(' + key + ',')
+        if type(d[key]) == dict:
+            parseAttributes(d[key], outfile)
+        else:
+            outfile.write(str(d[key]))
+        
+        outfile.write(') ')
+
+def parseHours(days, outfile):
+    for day in days.keys():
+        outfile.write('(' + day + ',')
+        open, close = days[day].split('-')
+        outfile.write(open + ',' + close + ') ')
 
 def parseBusinessData():
     #read the JSON file
@@ -10,6 +26,7 @@ def parseBusinessData():
         outfile =  open('business.txt', 'w')
         line = f.readline()
         count_line = 0
+        
         #read each JSON abject and extract data
         while line:
             data = json.loads(line)
@@ -28,41 +45,70 @@ def parseBusinessData():
             categories = data["categories"].split(', ')
             outfile.write(str(categories)+'\t')  #category list
             
-            # TO-DO : write your own code to process attributes
-            outfile.write(str([])) 
-            # TO-DO : write your own code to process hours data
-            outfile.write(str([])) 
+            parseAttributes(data['attributes'], outfile) #attributes
+            
+            outfile.write(';; ') #indicates end of attributes and start of hours
+            
+            parseHours(data['hours'], outfile) #hours
 
             outfile.write('\n');
 
             line = f.readline()
             count_line +=1
-    print(count_line)
+    print('parsed ' + str(count_line) + ' businesses')
+    
     outfile.close()
     f.close()
 
 def parseUserData():
     inFile = open('yelp_user.JSON', 'r')
-    line = inFile.readline()
-    data = json.loads(line)
-    print(data)
+    parsedFile = open('user.txt', 'w')
     
+    line = inFile.readline()
+    lineCount = 0
+    
+    while line:
+        data = json.loads(line)
+        parsedFile.write(data['user_id'] + ';') #user ID
+        parsedFile.write(data['name'] + ';') #name
+        parsedFile.write(data['yelping_since'].replace(' ', ';') + ';') #creation date;time
+        parsedFile.write(str(data['average_stars']) + ';') #average stars
+        parsedFile.write(str(data['tipcount']) + ';') #tip count
+        parsedFile.write(str(data['cool']) + ';') #cool
+        parsedFile.write(str(data['funny']) + ';') #funny
+        parsedFile.write(str(data['useful']) + ';') #useful
+        parsedFile.write(str(data['fans'])) #fans
+        
+        for friend in data['friends']:
+            parsedFile.write(';' + friend) #friends
+        
+        parsedFile.write('\n')
+        
+        line = inFile.readline()
+        
+        lineCount += 1
+
+    print('parsed ' + str(lineCount) + ' users')
+    parsedFile.close()
     inFile.close()
 
 def parseCheckinData():
     inFile = open('yelp_checkin.JSON', 'r')
     parsedFile = open('checkin.txt', 'w')
     line = inFile.readline()
+    lineCount = 0
     while line:
         data = json.loads(line)
-        parsedFile.write(data['business_id'])
+        parsedFile.write(data['business_id']) #business ID
         parsedFile.write(';')
         checkins = data['date'].replace(' ', ';').replace(',',';')
-        parsedFile.write(checkins)
+        parsedFile.write(checkins) #date;time;date;time...
         parsedFile.write('\n')
     
         line = inFile.readline()
+        lineCount += 1
 
+    print('parsed ' + str(lineCount) + ' checkins')
     parsedFile.close()
     inFile.close()
 
@@ -70,26 +116,29 @@ def parseTipData():
     inFile = open('yelp_tip.JSON', 'r')
     parsedFile = open('tip.txt', 'w')
     line = inFile.readline()
+    lineCount = 0
     while line:
         data = json.loads(line)
-        parsedFile.write(data['business_id'])
+        parsedFile.write(data['business_id']) #business ID
         parsedFile.write(';')
-        parsedFile.write(data['user_id'])
+        parsedFile.write(data['user_id']) #user ID
         parsedFile.write(';')
-        parsedFile.write(data['date'].replace(' ', ';'))
+        parsedFile.write(data['date'].replace(' ', ';')) #date;time
         parsedFile.write(';')
-        parsedFile.write(str(data['likes']))
+        parsedFile.write(str(data['likes'])) #likes
         parsedFile.write(';')
-        parsedFile.write(data['text'])
+        parsedFile.write(data['text']) #description
         parsedFile.write('\n')
         
         line = inFile.readline()
+        lineCount += 1
     
+    print('parsed ' + str(lineCount) + ' tips')
     parsedFile.close()
     inFile.close()
 
 if __name__ == "__main__":
-    #parseBusinessData()
+    parseBusinessData()
     parseUserData()
-    #parseCheckinData()
-    #parseTipData()
+    parseCheckinData()
+    parseTipData()
