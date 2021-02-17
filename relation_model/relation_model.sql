@@ -57,7 +57,7 @@ CREATE TABLE ChecksIn(
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
-CREATE TABLE business(
+CREATE TABLE Business(
     businessID VARCHAR,
     businessName VARCHAR,
     stars REAL,
@@ -112,19 +112,11 @@ CREATE TABLE RestaurantAmbiance(
     FOREIGN KEY (businessID) REFERENCES Restaurant (businessID)
 );
 
--- includes salons, gyms, hotels, pharmacies, dry cleaners, hospitals/clinics, atms, banks, mail/shipping
+-- includes all forms of entertainment, salons, gyms, hotels, pharmacies, dry cleaners, hospitals/clinics, atms, banks, mail/shipping
 CREATE TABLE PersonalService(
     businessID VARCHAR,
     appointmentOnly BOOLEAN,
     acceptsInsurance BOOLEAN,
-    PRIMARY KEY (businessID),
-    FOREIGN KEY (businessID) REFERENCES business (businessID)
-);
-
--- parks, music, museums, attractions, libraries, movie theaters 
-CREATE TABLE Entertainment(
-    businessID VARCHAR,
-    appointmentOnly BOOLEAN,
     PRIMARY KEY (businessID),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
