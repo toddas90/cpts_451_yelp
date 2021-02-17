@@ -3,6 +3,14 @@ using Eto.Forms;
 using Eto.Drawing;
 using Npgsql;
 
+// TODO:
+// Bug 1: Crashes when you click in the grid but not on an item (empty space).
+// Bug 2: When you first go into a state's businesses, when you click a business
+//          it sometimes clicks the 1st business in the list plus the one you
+//          actually clicked.
+// Bug 3: (Windows Specific???) When you select a new state after looking at a businesses
+//          details, it will crash.
+
 namespace cpts_451_yelp
 {
     // Main window class.
