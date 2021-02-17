@@ -30,14 +30,16 @@ CREATE TABLE FriendsWith(
     userID VARCHAR,
     friendID VARCHAR,
     PRIMARY KEY (userID,friendID),
-    FOREIGN KEY (userID,friendID) REFERENCES User (userID)
+    FOREIGN KEY (userID) REFERENCES User (userID),
+    FOREIGN KEY (friendID) REFERENCES User (userID)
 );
 
 CREATE TABLE FansUser(
     fanID VARCHAR, --ID of user "fanning" other user
     userID VARCHAR, --ID of user being "fanned"
     PRIMARY KEY (fanID, userID),
-    FOREIGN KEY (userID, fanID) REFERENCES User (userID)
+    FOREIGN KEY (userID) REFERENCES User (userID)
+    FOREIGN KEY (fanID) REFERENCES User (userID)
 );
 
 CREATE TABLE LikesUser(
@@ -45,7 +47,8 @@ CREATE TABLE LikesUser(
     userID VARCHAR, --ID of user being liked
     reason VARCHAR, -- cool funny or useful
     PRIMARY KEY (likerID, userID),
-    FOREIGN KEY (userID, likerID) REFERENCES User (userID)
+    FOREIGN KEY (userID) REFERENCES User (userID)
+    FOREIGN KEY (likerID) REFERENCES User (userID)
 );
 
 CREATE TABLE ChecksIn(
