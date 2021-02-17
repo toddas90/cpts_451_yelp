@@ -4,12 +4,12 @@ using Eto.Drawing;
 using Npgsql;
 
 // TODO:
-// Bug 1: Crashes when you click in the grid but not on an item (empty space).
-// Bug 2: When you first go into a state's businesses, when you click a business
-//          it sometimes clicks the 1st business in the list plus the one you
-//          actually clicked.
+// *FIXED* Bug 1: Crashes when you click in the grid but not on an item (empty space).
+// *FIXED* Bug 2: When you go into a city and click on a business, it opens the first
+//          business in the list, then the one you clicked.
 // Bug 3: (Windows Specific???) When you select a new state after looking at a businesses
 //          details, it will crash.
+// Implement Feature 1: When you close the main window, close the program.
 
 namespace cpts_451_yelp
 {
@@ -20,7 +20,7 @@ namespace cpts_451_yelp
         TableLayout layout = new TableLayout();
         DropDown stateList = new DropDown();
         DropDown cityList = new DropDown();
-        GridView grid = new GridView<Business> { AllowMultipleSelection = false };
+        GridView grid = new GridView<Business> { AllowMultipleSelection = true, AllowEmptySelection = true };
 
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
@@ -30,6 +30,7 @@ namespace cpts_451_yelp
 
         // Event handler for the grid selection event.
         public event EventHandler<EventArgs> SelectionChanged;
+
 
         // Main Form where everything happens
         public MainForm()
@@ -89,7 +90,12 @@ namespace cpts_451_yelp
         // business that was clicked on.
         public void businessWindow(object sender, EventArgs e)
         {
+            if (grid.SelectedItem == null)
+            {
+                return;
+            }
             Business B = grid.SelectedItem as Business;
+            Console.WriteLine("Hello from " + B.name);
             if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
             {
                 BusinessForm bwindow = new BusinessForm(B.bid.ToString());
@@ -127,6 +133,7 @@ namespace cpts_451_yelp
         {
             // Again again, clears stuff.
             data.Clear();
+
             if (cityList.SelectedIndex > -1)
             {
                 string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
@@ -134,6 +141,7 @@ namespace cpts_451_yelp
 
                 // Need to connect the grid to the new data each time I think.
                 grid.DataStore = data;
+                // grid.UnselectAll(); GRRRRRRRRR
             }
         }
 
@@ -162,7 +170,7 @@ namespace cpts_451_yelp
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
-        // Used in the event handling for the Grid selection. Needs to be here.
+        //Used in the event handling for the Grid selection. Needs to be here.
         protected virtual void OnSelectionChanged()
         {
             EventHandler<EventArgs> handler = SelectionChanged;
