@@ -7,9 +7,8 @@ using Npgsql;
 // *FIXED* Bug 1: Crashes when you click in the grid but not on an item (empty space).
 // *FIXED* Bug 2: When you go into a city and click on a business, it opens the first
 //          business in the list, then the one you clicked.
-// Bug 3: (Windows Specific???) When you select a new state after looking at a businesses
-//          details, it will crash.
 // Implement Feature 1: When you close the main window, close the program.
+// Implement Feature 2: Resizing.
 
 namespace cpts_451_yelp
 {
@@ -36,7 +35,7 @@ namespace cpts_451_yelp
         public MainForm()
         {
             Title = "Yelp App"; // Title of Application
-            MinimumSize = new Size(600, 400); // Default resolution
+            MinimumSize = new Size(650, 400); // Default resolution
 
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
@@ -68,7 +67,7 @@ namespace cpts_451_yelp
                     cmd.CommandText = sqlstr;
                     try
                     {
-                        Console.WriteLine("Executing Query: " + sqlstr); // For debugging
+                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
                         var reader = cmd.ExecuteReader();
                         while (reader.Read())
                             myf(reader);
@@ -95,7 +94,7 @@ namespace cpts_451_yelp
                 return;
             }
             Business B = grid.SelectedItem as Business;
-            Console.WriteLine("Hello from " + B.name);
+            // Console.WriteLine("Hello from " + B.name); For debugging!
             if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
             {
                 BusinessForm bwindow = new BusinessForm(B.bid.ToString());
@@ -191,7 +190,7 @@ namespace cpts_451_yelp
         {
             grid.Size = new Size(465, 300);
             layout.Spacing = new Size(5, 5);
-            layout.Padding = new Padding(10, 10, 10, 10);
+            layout.Padding = new Padding(20, 20, 20, 20);
             layout.Rows.Add(new TableRow(
                 new Label { Text = "State" },
                 TableLayout.AutoSized(stateList)
@@ -260,7 +259,7 @@ namespace cpts_451_yelp
                     cmd.CommandText = sqlstr;
                     try
                     {
-                        Console.WriteLine("Executing Query: " + sqlstr); // For debugging
+                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
                         var reader = cmd.ExecuteReader();
                         reader.Read();
                         myf(reader);
