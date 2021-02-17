@@ -50,16 +50,16 @@ CREATE TABLE LikesUser(
 
 CREATE TABLE ChecksIn(
     userID VARCHAR,
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     checkInDate DATETIME,
-    PRIMARY KEY (userID, buisnessID),
+    PRIMARY KEY (userID, businessID),
     FOREIGN KEY (userID) REFERENCES User (userID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
-CREATE TABLE Buisness(
-    buisnessID VARCHAR,
-    buisnessName VARCHAR,
+CREATE TABLE business(
+    businessID VARCHAR,
+    businessName VARCHAR,
     stars REAL,
     tipCount INTEGER,
     isOpen BOOLEAN,
@@ -71,12 +71,12 @@ CREATE TABLE Buisness(
     priceRange INTEGER, --1 through 4
     parking VARCHAR, --include bike parking
     catagories VARCHAR,
-    PRIMARY KEY (buisnessID)
+    PRIMARY KEY (businessID)
     CHECK (stars>=0, tipCount>=0)
 );
 
 CREATE TABLE Restaurant(
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     attire VARCHAR,
     breakfast BOOLEAN,
     brunch BOOLEAN,
@@ -93,12 +93,12 @@ CREATE TABLE Restaurant(
     catering BOOLEAN,
     delivery BOOLEAN,
     takeout BOOLEAN,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
 CREATE TABLE RestaurantAmbiance(
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     romantic BOOLEAN,
     intimate BOOLEAN,
     classy BOOLEAN,
@@ -108,47 +108,47 @@ CREATE TABLE RestaurantAmbiance(
     trendy BOOLEAN,
     upscale BOOLEAN,
     casual BOOLEAN,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Restaurant (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Restaurant (businessID)
 );
 
 -- includes salons, gyms, hotels, pharmacies, dry cleaners, hospitals/clinics, atms, banks, mail/shipping
 CREATE TABLE PersonalService(
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     appointmentOnly BOOLEAN,
     acceptsInsurance BOOLEAN,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES business (businessID)
 );
 
 -- parks, music, museums, attractions, libraries, movie theaters 
 CREATE TABLE Entertainment(
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     appointmentOnly BOOLEAN,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
-CREATE TABLE BuisnessAddress(
-    buisnessID VARCHAR,
-    buisnessState CHAR(2),
-    buisnessCity VARCHAR,
-    buisnessPostalCode CHAR(5),
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+CREATE TABLE BusinessAddress(
+    businessID VARCHAR,
+    businessState CHAR(2),
+    businessCity VARCHAR,
+    businessPostalCode CHAR(5),
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
 
-CREATE TABLE BuisnessLocation(
-    buisnessID VARCHAR,
+CREATE TABLE BusinessLocation(
+    businessID VARCHAR,
     longitude FLOAT,
     lattitude FLOAT,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
-CREATE TABLE BuisnessHours(
-    buisnessID VARCHAR,
+CREATE TABLE BusinessHours(
+    businessID VARCHAR,
     suHrs VARCHAR,
     mHrs VARCHAR,
     tHrs VARCHAR,
@@ -156,17 +156,17 @@ CREATE TABLE BuisnessHours(
     thHrs VARCHAR,
     fHrs VARCHAR,
     sHrs VARCHAR,
-    PRIMARY KEY (buisnessID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    PRIMARY KEY (businessID),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
 CREATE TABLE Tip(
     userID VARCHAR, 
-    buisnessID VARCHAR,
+    businessID VARCHAR,
     dateWritten DATETIME,
     likes INTEGER,
     textWritten VARCHAR,
-    PRIMARY KEY (userID, buisnessID),
+    PRIMARY KEY (userID, businessID),
     FOREIGN KEY (userID) REFERENCES User (userID),
-    FOREIGN KEY (buisnessID) REFERENCES Buisness (buisnessID)
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
