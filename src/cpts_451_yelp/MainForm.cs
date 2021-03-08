@@ -135,7 +135,8 @@ namespace cpts_451_yelp
 
             if (cityList.SelectedIndex > -1)
             {
-                string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
+                string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + stateList.SelectedValue.ToString() 
+                    + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
                 executeQuery(cmd, queryBusinessHelper);
 
                 // Need to connect the grid to the new data each time I think.
@@ -179,10 +180,14 @@ namespace cpts_451_yelp
         // Adds the columns to the grid.
         private void addColGrid()
         {
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), HeaderText = "Business Name", Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("bid"), Width = 0, AutoSize = false, Resizable = false, Sortable = true, Editable = false, Visible = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), HeaderText = "Business Name", 
+                    Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), HeaderText = "State", 
+                    Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), HeaderText = "City", 
+                    Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("bid"), 
+                    Width = 0, AutoSize = false, Resizable = false, Sortable = true, Editable = false, Visible = false });
         }
 
         // This puts all of the UI elements in their places.
