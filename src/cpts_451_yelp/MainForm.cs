@@ -19,7 +19,8 @@ namespace cpts_451_yelp
         TableLayout layout = new TableLayout();
         DropDown stateList = new DropDown();
         DropDown cityList = new DropDown();
-        GridView grid = new GridView<Business> { AllowMultipleSelection = true, AllowEmptySelection = true };
+        GridView grid = new GridView<Business> { AllowMultipleSelection = true,
+            AllowEmptySelection = true };
 
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
@@ -52,7 +53,7 @@ namespace cpts_451_yelp
         // Hard coded credentials for the db, yeet!
         private string connectionInfo()
         {
-            return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
+            return "Host=192.168.0.250; Username=postgres; Database=milestone1db; Password=mustafa";
         }
 
         // Executes the queries, straight out of the video

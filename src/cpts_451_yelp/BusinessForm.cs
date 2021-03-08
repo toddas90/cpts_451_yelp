@@ -33,7 +33,7 @@ namespace cpts_451_yelp
         // Same connection info as above.
         private string connectionInfo()
         {
-            return "Host=localhost; Username=postgres; Database=milestone1db; Password=mustafa";
+            return "Host=192.168.0.250; Username=postgres; Database=milestone1db; Password=mustafa";
         }
 
         // Same executeQuery function as above, minus the while loop.
