@@ -123,7 +123,8 @@ namespace cpts_451_yelp
 
             if (stateList.SelectedIndex > -1)
             {
-                string cmd = "SELECT distinct city FROM business WHERE state = '" + stateList.SelectedValue.ToString() + "' ORDER BY city";
+                string cmd = "SELECT distinct city FROM business WHERE state = '" +
+                    stateList.SelectedValue.ToString() + "' ORDER BY city";
                 executeQuery(cmd, queryCityHelper);
             }
         }
@@ -136,7 +137,8 @@ namespace cpts_451_yelp
 
             if (cityList.SelectedIndex > -1)
             {
-                string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + stateList.SelectedValue.ToString() 
+                string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + 
+                    stateList.SelectedValue.ToString() 
                     + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
                 executeQuery(cmd, queryBusinessHelper);
 
@@ -161,7 +163,8 @@ namespace cpts_451_yelp
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
-            data.Add(new Business() { name = R.GetString(0), state = R.GetString(1), city = R.GetString(2), bid = R.GetString(3) });
+            data.Add(new Business() { name = R.GetString(0), state = R.GetString(1), 
+                    city = R.GetString(2), bid = R.GetString(3) });
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
@@ -181,14 +184,18 @@ namespace cpts_451_yelp
         // Adds the columns to the grid.
         private void addColGrid()
         {
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), HeaderText = "Business Name", 
-                    Width = 255, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), HeaderText = "State", 
-                    Width = 60, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), HeaderText = "City", 
-                    Width = 150, AutoSize = false, Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), 
+                    HeaderText = "Business Name", Width = 255, AutoSize = false, 
+                    Resizable = false, Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), 
+                    HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, 
+                    Sortable = true, Editable = false });
+            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), 
+                    HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, 
+                    Sortable = true, Editable = false });
             grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("bid"), 
-                    Width = 0, AutoSize = false, Resizable = false, Sortable = true, Editable = false, Visible = false });
+                    Width = 0, AutoSize = false, Resizable = false, Sortable = true, 
+                    Editable = false, Visible = false });
         }
 
         // This puts all of the UI elements in their places.
