@@ -4,63 +4,127 @@ from tqdm import tqdm
 
 def cleanStr4SQL(s):
     return s.replace("'","`").replace("\n"," ")
-    
-def parseAttributes(d, outfile):
-    for key in d.keys():
-        outfile.write('(' + key + ',')
-        if type(d[key]) == dict:
-            parseAttributes(d[key], outfile)
+
+# inserts nested attributes in the form (businessID, parentName:name, value)
+def insertNestedBusinessAttributes(id, attributes, parent, cursor, db):
+    for key in attributes.keys():
+        if type(attributes[key]) == dict:
+            if not insertNestedBusinessAttribute(id, attributes[key], parent + ':' + key, cursor, db):
+                return False
         else:
-            outfile.write(str(d[key]))
-        
-        outfile.write(') ')
+            try:
+                cursor.execute("INSERT INTO Attributes (businessID, attributeName, value)"
+                              + " VALUES (%s, %s, %s)",
+                              (id, parent + ':' + key, attributes[key]) )
+            except Exception as e:
+                print("unable to insert into Attributes", e)
+                return False
+            db.commit()
 
-def parseHours(days, outfile):
-    for day in days.keys():
-        outfile.write('(' + day + ',')
-        open, close = days[day].split('-')
-        outfile.write(open + ',' + close + ') ')
-
-def parseBusinessData():
-    #read the JSON file
-    # We assume that the Yelp data files are available in the current directory. If not, you should specify the path when you "open" the function. 
-    with open('yelp_business.JSON','r') as f:  
-        outfile =  open('business.txt', 'w')
-        line = f.readline()
-        count_line = 0
-        
-        #read each JSON abject and extract data
-        while line:
-            data = json.loads(line)
-            outfile.write(cleanStr4SQL(data['business_id'])+'\t') #business id
-            outfile.write(cleanStr4SQL(data['name'])+'\t') #name
-            outfile.write(cleanStr4SQL(data['address'])+'\t') #full_address
-            outfile.write(cleanStr4SQL(data['state'])+'\t') #state
-            outfile.write(cleanStr4SQL(data['city'])+'\t') #city
-            outfile.write(cleanStr4SQL(data['postal_code']) + '\t')  #zipcode
-            outfile.write(str(data['latitude'])+'\t') #latitude
-            outfile.write(str(data['longitude'])+'\t') #longitude
-            outfile.write(str(data['stars'])+'\t') #stars
-            outfile.write(str(data['review_count'])+'\t') #reviewcount
-            outfile.write(str(data['is_open'])+'\t') #openstatus
-
-            categories = data["categories"].split(', ')
-            outfile.write(str(categories)+'\t')  #category list
-            
-            parseAttributes(data['attributes'], outfile) #attributes
-            
-            outfile.write(';; ') #indicates end of attributes and start of hours
-            
-            parseHours(data['hours'], outfile) #hours
-
-            outfile.write('\n');
-
-            line = f.readline()
-            count_line +=1
-    print('parsed ' + str(count_line) + ' businesses')
+    return True
     
-    outfile.close()
-    f.close()
+def insertBusinessAttributes(id, attributes, cursor, db):
+    for key in attributes.keys():
+        if type(attributes[key]) == dict:
+            if not insertNestedBusinessAttributes(id, attributes[key], key, cursor, db):
+                return False
+        else:
+            try:
+                cursor.execute("INSERT INTO Attributes (businessID, attributeName, value)"
+                              + " VALUES (%s, %s, %s)",
+                              (id, key, attributes[key]) )
+            except Exception as e:
+                print("unable to insert into Attributes", e)
+                return False
+            db.commit()
+
+    return True
+
+def insertBusinessHours(id, hours, cursor, db):
+    for day in hours.keys():
+        open, close = hours[day].split('-')
+
+        try:
+            cursor.execute("INSERT INTO BusinessHours (businessID, dayOfWeek, openTime, closeTime)"
+                          + " VALUES (%s, %s, %s, %s)", 
+                          (id, day, open, close) )              
+        except Exception as e:
+            print("unable to insert into BusinessHours", e)
+            return
+        db.commit()
+
+    return True
+
+def insertBusinessCategories(id, categories, cursor, db):
+    for category in categories:
+        try:
+            cursor.execute("INSERT INTO Categories (businessID, categoryName)"
+                          + " VALUES (%s, %s)", 
+                          (id, category) )              
+        except Exception as e:
+            print("unable to insert into Categories", e)
+            return False
+        db.commit()
+
+    return True
+
+def insertBusinessData(cursor, db):
+    inFile = open('yelp_business.JSON', 'r')
+    
+    line = inFile.readline()
+    lineCount = 0
+    
+    # count file length (for progress bar)
+    while line:
+        lineCount += 1
+        line = inFile.readline()
+    
+    inFile.seek(0)    # reset to beginning of file
+    
+    for i in tqdm(range(lineCount), desc='populating business info'):
+        line = inFile.readline()
+        data = json.loads(line)
+        
+        # business data
+        try:
+            cursor.execute("INSERT INTO Business (businessID, businessName, stars, tipCount, checkInCount, isOpen)"
+                          + " VALUES (%s, %s, %s, %s, %s, %s)", 
+                          (data['business_id'], data['name'], data['stars'], 0, 0, bool(data['is_open'])) )              
+        except Exception as e:
+            print("unable to insert into Business", e)
+            return
+        db.commit()
+    
+        # business address
+        try:
+            cursor.execute("INSERT INTO BusinessAddress (businessID, businessState, businessCity, businessPostalCode, businessStreetAddress)"
+                          + " VALUES (%s, %s, %s, %s, %s)", 
+                          (data['business_id'], data['state'], data['city'], data['postal_code'], data['address']) )
+        except Exception as e:
+            print("unable to insert into BusinessAddress", e)
+            return
+        db.commit()
+    
+        # business location
+        try:
+            cursor.execute("INSERT INTO BusinessLocation (businessID, longitude, latitude)"
+                          + " VALUES (%s, %s, %s)", 
+                          (data['business_id'], data['longitude'], data['latitude']) )              
+        except Exception as e:
+            print("unable to insert into BusinessLocation", e)
+            return
+        db.commit()
+        
+        if not insertBusinessHours(data['business_id'], data['hours'], cursor, db):
+            return
+        
+        if not insertBusinessCategories(data['business_id'], data['categories'].split(', '), cursor, db):
+            return
+            
+        if not insertBusinessAttributes(data['business_id'], data['attributes'], cursor, db):
+            return
+
+    inFile.close()
 
 #inserts user data to users table
 def insertUserData(cursor, db):
@@ -92,7 +156,7 @@ def insertUserData(cursor, db):
         
         # user location
         try:
-            cursor.execute("INSERT INTO UserLocation (userID, longitude, lattitude)"
+            cursor.execute("INSERT INTO UserLocation (userID, longitude, latitude)"
                           + " VALUES (%s, %s, %s)",
                           (data['user_id'], 0, 0) )
         except Exception as e:
@@ -189,6 +253,7 @@ if __name__ == "__main__":
         dbCursor = dbConnection.cursor()
     
         insertUserData(dbCursor, dbConnection)
+        insertBusinessData(dbCursor, dbConnection)
     
         dbCursor.close()
         dbConnection.close()
