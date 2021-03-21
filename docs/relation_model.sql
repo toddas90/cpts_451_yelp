@@ -1,13 +1,13 @@
-CREATE TABLE User (
+CREATE TABLE Users (
     userID VARCHAR,
     userName VARCHAR,
     averageStars REAL,  
-    yelpingSince DATETIME,
+    yelpingSince TIMESTAMP,
     tipCount INTEGER,
     totalLikes INTEGER,
     fans INTEGER,
     PRIMARY KEY (userID),
-    CHECK (averageStars>=0, tipCount>=0, fans>=0)
+    CHECK (averageStars>=0 AND tipCount>=0 AND fans>=0)
 );
 
 CREATE TABLE UserLocation(
@@ -15,7 +15,7 @@ CREATE TABLE UserLocation(
     longitude FLOAT,
     lattitude FLOAT,
     PRIMARY KEY (userID),
-    FOREIGN KEY (userID) REFERENCES User (userID)
+    FOREIGN KEY (userID) REFERENCES Users (userID)
 );
 
 CREATE TABLE UserRating(
@@ -24,22 +24,15 @@ CREATE TABLE UserRating(
     cool INTEGER,
     useful INTEGER,
     PRIMARY KEY (userID),
-    FOREIGN KEY (userID) REFERENCES User (userID)
+    FOREIGN KEY (userID) REFERENCES Users (userID)
 );
 
 CREATE TABLE FriendsWith(
     userID VARCHAR,
     friendID VARCHAR,
     PRIMARY KEY (userID,friendID),
-    FOREIGN KEY (userID) REFERENCES User (userID),
-    FOREIGN KEY (friendID) REFERENCES User (userID)
-);
-
-CREATE TABLE ChecksIn(
-    businessID VARCHAR,
-    checkInDate DATETIME,
-    PRIMARY KEY (businessID,checkInDate),
-    FOREIGN KEY (businessID) REFERENCES Business (businessID)
+    FOREIGN KEY (userID) REFERENCES Users (userID),
+    FOREIGN KEY (friendID) REFERENCES Users (userID)
 );
 
 CREATE TABLE Business(
@@ -49,10 +42,16 @@ CREATE TABLE Business(
     tipCount INTEGER,
     checkInCount INTEGER,
     isOpen BOOLEAN,
-    PRIMARY KEY (businessID)
-    CHECK (stars>=0, tipCount>=0)
+    PRIMARY KEY (businessID),
+    CHECK (stars>=0 AND tipCount>=0)
 );
 
+CREATE TABLE ChecksIn(
+    businessID VARCHAR,
+    checkInDate TIMESTAMP,
+    PRIMARY KEY (businessID,checkInDate),
+    FOREIGN KEY (businessID) REFERENCES Business (businessID)
+);
 
 CREATE TABLE BusinessAddress(
     businessID VARCHAR,
@@ -77,8 +76,8 @@ CREATE TABLE BusinessHours(
     businessID VARCHAR,
     dayOfWeek VARCHAR,
     openTime VARCHAR,
-    closeTime VARCHAR
-    PRIMARY KEY (businessID,),
+    closeTime VARCHAR,
+    PRIMARY KEY (businessID),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
@@ -86,24 +85,24 @@ CREATE TABLE Attributes(
     businessID VARCHAR,
     attributeName VARCHAR,
     value BOOLEAN,
-    PRIMARY KEY (buisnessID, attributeName),
+    PRIMARY KEY (businessID, attributeName),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
 CREATE TABLE Categories(
     businessID VARCHAR,
     categoryName VARCHAR,
-    PRIMARY KEY (businessID, categoryName)
+    PRIMARY KEY (businessID, categoryName),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
 CREATE TABLE Tip(
     userID VARCHAR, 
     businessID VARCHAR,
-    dateWritten DATETIME,
+    dateWritten TIMESTAMP,
     likes INTEGER,
     textWritten VARCHAR,
     PRIMARY KEY (userID, businessID, datewritten),
-    FOREIGN KEY (userID) REFERENCES User (userID),
+    FOREIGN KEY (userID) REFERENCES Users (userID),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
