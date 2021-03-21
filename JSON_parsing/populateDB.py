@@ -1,5 +1,6 @@
 import json
 import psycopg2
+from tqdm import tqdm
 
 def cleanStr4SQL(s):
     return s.replace("'","`").replace("\n"," ")
@@ -68,7 +69,15 @@ def insertUserData(cursor, db):
     line = inFile.readline()
     lineCount = 0
     
+    # count file length (for progress bar)
     while line:
+        lineCount += 1
+        line = inFile.readline()
+    
+    inFile.seek(0)    # reset to beginning of file
+    
+    for i in tqdm(range(lineCount), desc='populating user info'):
+        line = inFile.readline()
         data = json.loads(line)
 
         # user data
@@ -78,52 +87,47 @@ def insertUserData(cursor, db):
                           (data['user_id'], data['name'], data['average_stars'], data['yelping_since'], data['tipcount'], 0, data['fans']) )              
         except Exception as e:
             print("unable to insert into Users", e)
+            return
         db.commit()
         
         # user location
         try:
             cursor.execute("INSERT INTO UserLocation (userID, longitude, lattitude)"
                           + " VALUES (%s, %s, %s)",
-                          (data['user_id', 0, 0) )
+                          (data['user_id'], 0, 0) )
         except Exception as e:
             print("unable to insert into UserLocation", e)
+            return
         db.commit()
         
         # user rating
         try:
             cursor.execute("INSERT INTO UserRating (userID, funny, cool, useful)"
-                          + " VALUES (%s, %s, %s, %s)"
-                          (data['user_id'], data['funny'], data['cool'], data['fans']) )
-        except Exception as a:
+                          + " VALUES (%s, %s, %s, %s)",
+                          (data['user_id'], data['funny'], data['cool'], data['useful']) )
+        except Exception as e:
             print("unable to insert into UserRating", e)
+            return
         db.commit()
-        
-        line = inFile.readline()
-        
-        lineCount += 1
 
     inFile.seek(0)    # reset to beginning
     
-    line = inFile.readline()
-    while line:
+    # add friends info, must be done after users due to foreign key constraints
+    for i in tqdm(range(lineCount), desc='populating friend info'):
+        line = inFile.readline()
         data = json.loads(line)
         
         for friend in data['friends']:
             try:
                 cursor.execute("INSERT INTO FriendsWith (userID, friendID)"
-                              + " VALUES (%s, %s)"
+                              + " VALUES (%s, %s)",
                               (data['user_id'], friend) )
-            except Exception as a:
+            except Exception as e:
                 print("unable to insert into FriendsWith", e)
+                return
             db.commit()
-        
-        line = inFile.readline()
 
-    print('parsed ' + str(lineCount) + ' users')
-    #parsedFile.close()
     inFile.close()
-    
-    inFile = open('yelp_user.JSON', 'r')
 
 def parseCheckinData():
     inFile = open('yelp_checkin.JSON', 'r')
@@ -177,11 +181,9 @@ if __name__ == "__main__":
     
     try:
         dbConnection = psycopg2.connect("dbname='yelpdata' user='postgres' host='localhost' password=''")   # change parameters as needed
-    except Exception as e
+    except Exception as e:
         error = True
-        print(e)
-    
-    print('fatal error occured, exiting')
+        print('fatal error occured', e)
     
     if not error:
         dbCursor = dbConnection.cursor()
