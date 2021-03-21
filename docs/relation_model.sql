@@ -13,7 +13,7 @@ CREATE TABLE Users (
 CREATE TABLE UserLocation(
     userID VARCHAR,
     longitude FLOAT,
-    lattitude FLOAT,
+    latitude FLOAT,
     PRIMARY KEY (userID),
     FOREIGN KEY (userID) REFERENCES Users (userID)
 );
@@ -67,7 +67,7 @@ CREATE TABLE BusinessAddress(
 CREATE TABLE BusinessLocation(
     businessID VARCHAR,
     longitude FLOAT,
-    lattitude FLOAT,
+    latitude FLOAT,
     PRIMARY KEY (businessID),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
