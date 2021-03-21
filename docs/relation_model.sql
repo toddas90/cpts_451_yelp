@@ -77,7 +77,7 @@ CREATE TABLE BusinessHours(
     dayOfWeek VARCHAR,
     openTime VARCHAR,
     closeTime VARCHAR,
-    PRIMARY KEY (businessID),
+    PRIMARY KEY (businessID, dayOfWeek),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
 
