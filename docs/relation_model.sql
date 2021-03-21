@@ -75,8 +75,8 @@ CREATE TABLE BusinessLocation(
 CREATE TABLE BusinessHours(
     businessID VARCHAR,
     dayOfWeek VARCHAR,
-    openTime VARCHAR,
-    closeTime VARCHAR,
+    openTime TIME,
+    closeTime TIME,
     PRIMARY KEY (businessID, dayOfWeek),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
@@ -84,7 +84,7 @@ CREATE TABLE BusinessHours(
 CREATE TABLE Attributes(
     businessID VARCHAR,
     attributeName VARCHAR,
-    value BOOLEAN,
+    value VARCHAR,
     PRIMARY KEY (businessID, attributeName),
     FOREIGN KEY (businessID) REFERENCES Business (businessID)
 );
