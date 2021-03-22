@@ -6,10 +6,10 @@ def cleanStr4SQL(s):
     return s.replace("'","`").replace("\n"," ")
 
 # inserts nested attributes in the form (businessID, parentName:name, value)
-def insertNestedBusinessAttributes(id, attributes, parent, cursor, db):
+def insertNestedBusinessAttributes(id, attributes, parent, cursor):
     for key in attributes.keys():
         if type(attributes[key]) == dict:
-            if not insertNestedBusinessAttribute(id, attributes[key], parent + ':' + key, cursor, db):
+            if not insertNestedBusinessAttribute(id, attributes[key], parent + ':' + key, cursor):
                 return False
         else:
             try:
@@ -19,14 +19,13 @@ def insertNestedBusinessAttributes(id, attributes, parent, cursor, db):
             except Exception as e:
                 print("unable to insert into Attributes", e)
                 return False
-            db.commit()
 
     return True
     
-def insertBusinessAttributes(id, attributes, cursor, db):
+def insertBusinessAttributes(id, attributes, cursor):
     for key in attributes.keys():
         if type(attributes[key]) == dict:
-            if not insertNestedBusinessAttributes(id, attributes[key], key, cursor, db):
+            if not insertNestedBusinessAttributes(id, attributes[key], key, cursor):
                 return False
         else:
             try:
@@ -36,11 +35,10 @@ def insertBusinessAttributes(id, attributes, cursor, db):
             except Exception as e:
                 print("unable to insert into Attributes", e)
                 return False
-            db.commit()
 
     return True
 
-def insertBusinessHours(id, hours, cursor, db):
+def insertBusinessHours(id, hours, cursor):
     for day in hours.keys():
         open, close = hours[day].split('-')
 
@@ -51,11 +49,10 @@ def insertBusinessHours(id, hours, cursor, db):
         except Exception as e:
             print("unable to insert into BusinessHours", e)
             return
-        db.commit()
 
     return True
 
-def insertBusinessCategories(id, categories, cursor, db):
+def insertBusinessCategories(id, categories, cursor):
     for category in categories:
         try:
             cursor.execute("INSERT INTO Categories (businessID, categoryName)"
@@ -64,7 +61,6 @@ def insertBusinessCategories(id, categories, cursor, db):
         except Exception as e:
             print("unable to insert into Categories", e)
             return False
-        db.commit()
 
     return True
 
@@ -93,7 +89,6 @@ def insertBusinessData(cursor, db):
         except Exception as e:
             print("unable to insert into Business", e)
             return
-        db.commit()
     
         # business address
         try:
@@ -103,7 +98,7 @@ def insertBusinessData(cursor, db):
         except Exception as e:
             print("unable to insert into BusinessAddress", e)
             return
-        db.commit()
+        
     
         # business location
         try:
@@ -113,16 +108,17 @@ def insertBusinessData(cursor, db):
         except Exception as e:
             print("unable to insert into BusinessLocation", e)
             return
-        db.commit()
         
-        if not insertBusinessHours(data['business_id'], data['hours'], cursor, db):
+        if not insertBusinessHours(data['business_id'], data['hours'], cursor):
             return
         
-        if not insertBusinessCategories(data['business_id'], data['categories'].split(', '), cursor, db):
+        if not insertBusinessCategories(data['business_id'], data['categories'].split(', '), cursor):
             return
             
-        if not insertBusinessAttributes(data['business_id'], data['attributes'], cursor, db):
+        if not insertBusinessAttributes(data['business_id'], data['attributes'], cursor):
             return
+
+    db.commit()
 
     inFile.close()
 
@@ -148,12 +144,11 @@ def insertUserData(cursor, db):
         try:
             cursor.execute("INSERT INTO Users (userID, userName, averageStars, yelpingSince, tipCount, totalLikes, fans)"
                           + " VALUES (%s, %s, %s, %s, %s, %s, %s)", 
-                          (data['user_id'], data['name'], data['average_stars'], data['yelping_since'], data['tipcount'], 0, data['fans']) )              
+                          (data['user_id'], data['name'], data['average_stars'], data['yelping_since'], 0, 0, data['fans']) )
         except Exception as e:
             print("unable to insert into Users", e)
             return
-        db.commit()
-        
+
         # user location
         try:
             cursor.execute("INSERT INTO UserLocation (userID, longitude, latitude)"
@@ -162,8 +157,7 @@ def insertUserData(cursor, db):
         except Exception as e:
             print("unable to insert into UserLocation", e)
             return
-        db.commit()
-        
+
         # user rating
         try:
             cursor.execute("INSERT INTO UserRating (userID, funny, cool, useful)"
@@ -172,15 +166,16 @@ def insertUserData(cursor, db):
         except Exception as e:
             print("unable to insert into UserRating", e)
             return
-        db.commit()
+
+    db.commit()
 
     inFile.seek(0)    # reset to beginning
-    
+
     # add friends info, must be done after users due to foreign key constraints
     for i in tqdm(range(lineCount), desc='populating friend info'):
         line = inFile.readline()
         data = json.loads(line)
-        
+
         for friend in data['friends']:
             try:
                 cursor.execute("INSERT INTO FriendsWith (userID, friendID)"
@@ -189,7 +184,8 @@ def insertUserData(cursor, db):
             except Exception as e:
                 print("unable to insert into FriendsWith", e)
                 return
-            db.commit()
+
+    db.commit()
 
     inFile.close()
 
@@ -220,7 +216,8 @@ def insertCheckinData(cursor, db):
             except Exception as e:
                 print("unable to insert into ChecksIn", e)
                 return
-            db.commit()
+
+    db.commit()
 
     inFile.close()
 
@@ -248,7 +245,8 @@ def insertTipData(cursor, db):
         except Exception as e:
             print("unable to insert into Tip", e)
             return
-        db.commit()
+
+    db.commit()
 
     inFile.close()
 
@@ -266,12 +264,10 @@ if __name__ == "__main__":
     if not error:
         dbCursor = dbConnection.cursor()
     
-        #insertUserData(dbCursor, dbConnection)
-        #insertBusinessData(dbCursor, dbConnection)
-        #insertCheckinData(dbCursor, dbConnection)
+        insertUserData(dbCursor, dbConnection)
+        insertBusinessData(dbCursor, dbConnection)
+        insertCheckinData(dbCursor, dbConnection)
         insertTipData(dbCursor, dbConnection)
     
         dbCursor.close()
         dbConnection.close()
-        
-        print('database population complete')
