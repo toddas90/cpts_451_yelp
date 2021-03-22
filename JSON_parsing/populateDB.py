@@ -193,24 +193,35 @@ def insertUserData(cursor, db):
 
     inFile.close()
 
-def parseCheckinData():
+def insertCheckinData(cursor, db):
     inFile = open('yelp_checkin.JSON', 'r')
-    parsedFile = open('checkin.txt', 'w')
+    
     line = inFile.readline()
     lineCount = 0
-    while line:
-        data = json.loads(line)
-        parsedFile.write(data['business_id']) #business ID
-        parsedFile.write(';')
-        checkins = data['date'].replace(' ', ';').replace(',',';')
-        parsedFile.write(checkins) #date;time;date;time...
-        parsedFile.write('\n')
     
-        line = inFile.readline()
+    # count file length
+    while line:
         lineCount += 1
+        line = inFile.readline()
+    
+    inFile.seek(0)    # reset to beginning of file
+    
+    for i in tqdm(range(lineCount), desc='populating checkin info'):
+        line = inFile.readline()
+        data = json.loads(line)
+        
+        checkinDates = data['date'].split(',')
+        
+        for checkin in checkinDates:
+            try:
+                cursor.execute("INSERT INTO ChecksIn (businessID, checkInDate)"
+                              + " VALUES (%s, %s)",
+                              (data['business_id'], checkin) )
+            except Exception as e:
+                print("unable to insert into ChecksIn", e)
+                return
+            db.commit()
 
-    print('parsed ' + str(lineCount) + ' checkins')
-    parsedFile.close()
     inFile.close()
 
 def parseTipData():
@@ -252,8 +263,9 @@ if __name__ == "__main__":
     if not error:
         dbCursor = dbConnection.cursor()
     
-        insertUserData(dbCursor, dbConnection)
-        insertBusinessData(dbCursor, dbConnection)
+        #insertUserData(dbCursor, dbConnection)
+        #insertBusinessData(dbCursor, dbConnection)
+        insertCheckinData(dbCursor, dbConnection)
     
         dbCursor.close()
         dbConnection.close()
