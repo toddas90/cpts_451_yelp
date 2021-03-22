@@ -224,29 +224,32 @@ def insertCheckinData(cursor, db):
 
     inFile.close()
 
-def parseTipData():
+def insertTipData(cursor, db):
     inFile = open('yelp_tip.JSON', 'r')
-    parsedFile = open('tip.txt', 'w')
+
     line = inFile.readline()
     lineCount = 0
-    while line:
-        data = json.loads(line)
-        parsedFile.write(data['business_id']) #business ID
-        parsedFile.write(';')
-        parsedFile.write(data['user_id']) #user ID
-        parsedFile.write(';')
-        parsedFile.write(data['date'].replace(' ', ';')) #date;time
-        parsedFile.write(';')
-        parsedFile.write(str(data['likes'])) #likes
-        parsedFile.write(';')
-        parsedFile.write(data['text']) #description
-        parsedFile.write('\n')
-        
-        line = inFile.readline()
-        lineCount += 1
     
-    print('parsed ' + str(lineCount) + ' tips')
-    parsedFile.close()
+    # count file length
+    while line:
+        lineCount += 1
+        line = inFile.readline()
+    
+    inFile.seek(0)    # reset to beginning of file
+
+    for i in tqdm(range(lineCount), desc='populating tip info'):
+        line = inFile.readline()
+        data = json.loads(line)
+        
+        try:
+            cursor.execute("INSERT INTO Tip (userID, businessID, dateWritten, likes, textWritten)"
+                          + " VALUES (%s, %s, %s, %s, %s)",
+                          (data['user_id'], data['business_id'], data['date'], data['likes'], data['text']) )
+        except Exception as e:
+            print("unable to insert into Tip", e)
+            return
+        db.commit()
+
     inFile.close()
 
 if __name__ == "__main__":
@@ -265,7 +268,10 @@ if __name__ == "__main__":
     
         #insertUserData(dbCursor, dbConnection)
         #insertBusinessData(dbCursor, dbConnection)
-        insertCheckinData(dbCursor, dbConnection)
+        #insertCheckinData(dbCursor, dbConnection)
+        insertTipData(dbCursor, dbConnection)
     
         dbCursor.close()
         dbConnection.close()
+        
+        print('database population complete')
