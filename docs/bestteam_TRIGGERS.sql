@@ -58,3 +58,20 @@ CREATE TRIGGER NewTip
 AFTER INSERT ON ChecksIn
 FOR EACH STATEMENT 
 EXECUTE PROCEDURE TipInfoUpdate(); 
+
+-- Test code for NewCheckIn Trigger
+SELECT businessID, checkInCount FROM Buisness WHERE buisnessID = 'gnKjwL_1w79qoiV3IC_xQQ' ;
+INSERT INTO ChecksIn VALUES ('gnKjwL_1w79qoiV3IC_xQQ','2021-03-23 12:00:00');
+SELECT businessID, checkInCount FROM Buisness WHERE buisnessID = 'gnKjwL_1w79qoiV3IC_xQQ' ;
+-- clean 
+DROP TRIGGER UpdateNumCheckins on Buisness;
+
+-- Test code for NewTip Trigger
+SELECT businessID, numTips FROM Buisness WHERE buisnessID = 'gnKjwL_1w79qoiV3IC_xQQ' ;
+SELECT userID, tipCount, totalLikes FROM Users WHERE userID = 'TEtzbpgA2BFBrC0y0sCbfw';
+INSERT INTO Tip VALUES ('TEtzbpgA2BFBrC0y0sCbfw','gnKjwL_1w79qoiV3IC_xQQ','2021-03-23 12:00:00', '10', 'Good Atmosphere!');
+SELECT businessID, numTips FROM Buisness WHERE buisnessID = 'gnKjwL_1w79qoiV3IC_xQQ' ;
+SELECT userID, tipCount, totalLikes FROM Users WHERE userID = 'TEtzbpgA2BFBrC0y0sCbfw';
+-- clean 
+DROP TRIGGER NewTip on Buisness;
+DROP TRIGGER NewTip on Users;
