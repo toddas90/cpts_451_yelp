@@ -14,6 +14,7 @@ namespace cpts_451_yelp
         private string bname = "";
         private string bstate = "";
         private string bcity = "";
+        private string bzip = "";
         private string statenum = "";
         private string citynum = "";
 
@@ -67,10 +68,10 @@ namespace cpts_451_yelp
             }
         }
 
-        // Query for loading the name, city, and state into the business details window.
+        // Query for loading the name, city, state, and zip into the business details window.
         private void loadBusinessDetails()
         {
-            string sqlStr = "SELECT businessname, businessstate, businesscity FROM businessaddress, business WHERE business.businessid = '" + this.bid + "';";
+            string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
             executeQuery(sqlStr, loadBusinessDetailsHelper);
         }
 
@@ -89,6 +90,7 @@ namespace cpts_451_yelp
             bname = R.GetString(0);
             bstate = R.GetString(1);
             bcity = R.GetString(2);
+            bzip = R.GetString(3);
         }
 
         // Helper for assigning state business numbers.
@@ -119,6 +121,10 @@ namespace cpts_451_yelp
             layout.Rows.Add(new TableRow(
                 new Label { Text = "City" },
                 new TextBox { Text = bcity, ReadOnly = true }
+            ));
+            layout.Rows.Add(new TableRow(
+                new Label { Text = "Zip" },
+                new TextBox { Text = bzip, ReadOnly = true }
             ));
             layout.Rows.Add(new TableRow(
                 new Label { Text = "# of Businesses in State" },

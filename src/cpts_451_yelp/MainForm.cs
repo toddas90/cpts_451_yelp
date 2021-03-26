@@ -19,6 +19,8 @@ namespace cpts_451_yelp
         TableLayout layout = new TableLayout();
         DropDown stateList = new DropDown();
         DropDown cityList = new DropDown();
+        DropDown zipList = new DropDown();
+        DropDown catList = new DropDown();
         GridView grid = new GridView<Business>
         {
             AllowMultipleSelection = true,
@@ -39,7 +41,7 @@ namespace cpts_451_yelp
         public MainForm()
         {
             Title = "Yelp App"; // Title of Application
-            MinimumSize = new Size(650, 400); // Default resolution
+            MinimumSize = new Size(800, 600); // Default resolution
 
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
@@ -49,7 +51,10 @@ namespace cpts_451_yelp
             // These attach the event handlers to the specific functions.
             // ie when a value in the stateList is changes, it calls queryCity.
             stateList.SelectedValueChanged += new EventHandler<EventArgs>(queryCity);
-            cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
+            cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryZip);
+            zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryCat);
+            zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
+            catList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
         }
 
@@ -98,7 +103,7 @@ namespace cpts_451_yelp
                 return;
             }
             Business B = grid.SelectedItem as Business;
-            // Console.WriteLine("Hello from " + B.name); For debugging!
+            // Console.WriteLine("Hello from " + B.name); // For debugging!
             if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
             {
                 BusinessForm bwindow = new BusinessForm(B.bid.ToString());
@@ -111,6 +116,8 @@ namespace cpts_451_yelp
         {
             // Clears the grid data and the cities.
             cityList.Items.Clear();
+            zipList.Items.Clear();
+            catList.Items.Clear();
             data.Clear();
 
             string cmd = "SELECT distinct businessstate FROM businessaddress ORDER BY businessstate";
@@ -122,6 +129,8 @@ namespace cpts_451_yelp
         {
             // Again, clears the grid data and the cities list.
             cityList.Items.Clear();
+            zipList.Items.Clear();
+            catList.Items.Clear();
             data.Clear();
 
             if (stateList.SelectedIndex > -1)
@@ -132,22 +141,62 @@ namespace cpts_451_yelp
             }
         }
 
+        public void queryZip(object sender, EventArgs e)
+        {
+            // Again, clears the grid data and the cities list.
+            zipList.Items.Clear();
+            catList.Items.Clear();
+            data.Clear();
+
+            if (cityList.SelectedIndex > -1)
+            {
+                string cmd = "SELECT distinct businesspostalcode FROM businessaddress WHERE businessstate = '" +
+                    stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' ORDER BY businesspostalcode";
+                executeQuery(cmd, queryZipHelper);
+            }
+        }
+
+        public void queryCat(object sender, EventArgs e)
+        {
+            // Again, clears the grid data and the cities list.
+            catList.Items.Clear();
+            data.Clear();
+
+            if (zipList.SelectedIndex > -1)
+            {
+                string cmd = "SELECT DISTINCT categoryname FROM categories, businessaddress, business WHERE categories.businessid = business.businessid AND business.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY categoryname";
+                executeQuery(cmd, queryCatHelper);
+            }
+        }
+
         // This queries the db fto fill in the grid with info.
         public void queryBusiness(object sender, EventArgs e)
         {
             // Again again, clears stuff.
             data.Clear();
 
-            if (cityList.SelectedIndex > -1)
+            if (catList.SelectedIndex > -1)
             {
-                string cmd = "SELECT DISTINCT businessname, businessstate, businesscity, business.businessid FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessstate = '" +
-                    stateList.SelectedValue.ToString()
-                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' ORDER BY businessname";
+                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, categoryname, business.businessid FROM businessaddress, business, categories
+                    WHERE categories.businessid = business.businessid AND business.businessid = businessaddress.businessid AND categories.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
+                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' AND categoryname = '" + catList.SelectedValue.ToString() +
+                    "' ORDER BY businessname";
                 executeQuery(cmd, queryBusinessHelper);
 
                 // Need to connect the grid to the new data each time I think.
                 grid.DataStore = data;
                 // grid.UnselectAll(); GRRRRRRRRR
+            }
+            else if (zipList.SelectedIndex > -1)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
+                    WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
+                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
+                executeQuery(cmd, queryBusinessHelper);
+
+                // Need to connect the grid to the new data each time I think.
+                grid.DataStore = data;
             }
         }
 
@@ -163,16 +212,41 @@ namespace cpts_451_yelp
             cityList.Items.Add(R.GetString(0));
         }
 
+        private void queryZipHelper(NpgsqlDataReader R)
+        {
+            zipList.Items.Add(R.GetString(0));
+        }
+        private void queryCatHelper(NpgsqlDataReader R)
+        {
+            catList.Items.Add(R.GetString(0));
+        }
+
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
-            data.Add(new Business()
+            if (catList.SelectedIndex > -1)
             {
-                name = R.GetString(0),
-                state = R.GetString(1),
-                city = R.GetString(2),
-                bid = R.GetString(3)
-            });
+                data.Add(new Business()
+                {
+                    name = R.GetString(0),
+                    state = R.GetString(1),
+                    city = R.GetString(2),
+                    zip = R.GetString(3),
+                    cat = R.GetString(4),
+                    bid = R.GetString(5)
+                });
+            }
+            else
+            {
+                data.Add(new Business()
+                {
+                    name = R.GetString(0),
+                    state = R.GetString(1),
+                    city = R.GetString(2),
+                    zip = R.GetString(3),
+                    bid = R.GetString(4)
+                });
+            }
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
@@ -216,7 +290,17 @@ namespace cpts_451_yelp
             {
                 DataCell = new TextBoxCell("city"),
                 HeaderText = "City",
-                Width = 150,
+                Width = 120,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("zip"),
+                HeaderText = "Zip Code",
+                Width = 80,
                 AutoSize = false,
                 Resizable = false,
                 Sortable = true,
@@ -234,19 +318,34 @@ namespace cpts_451_yelp
             });
         }
 
-        // This puts all of the UI elements in their places.
         public void createUI()
         {
-            grid.Size = new Size(465, 300);
+            grid.Size = new Size(515, 300);
             layout.Spacing = new Size(5, 5);
             layout.Padding = new Padding(20, 20, 20, 20);
             layout.Rows.Add(new TableRow(
-                new Label { Text = "State" },
+                new Label { Text = "State" }
+            ));
+            layout.Rows.Add(new TableRow(
                 TableLayout.AutoSized(stateList)
             ));
             layout.Rows.Add(new TableRow(
-                new Label { Text = "City" },
+                new Label { Text = "City" }
+            ));
+            layout.Rows.Add(new TableRow(
                 TableLayout.AutoSized(cityList)
+            ));
+            layout.Rows.Add(new TableRow(
+                new Label { Text = "Zip Code" }
+            ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(zipList)
+            ));
+            layout.Rows.Add(new TableRow(
+                new Label { Text = "Categories" }
+            ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(catList)
             ));
             layout.Rows.Add(new TableRow(
                 TableLayout.AutoSized(grid)
@@ -260,6 +359,8 @@ namespace cpts_451_yelp
             public string name { get; set; }
             public string state { get; set; }
             public string city { get; set; }
+            public string zip { get; set; }
+            public string cat { get; set; }
             public string bid { get; set; }
         }
     }
