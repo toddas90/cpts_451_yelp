@@ -19,8 +19,11 @@ namespace cpts_451_yelp
         TableLayout layout = new TableLayout();
         DropDown stateList = new DropDown();
         DropDown cityList = new DropDown();
-        GridView grid = new GridView<Business> { AllowMultipleSelection = true,
-            AllowEmptySelection = true };
+        GridView grid = new GridView<Business>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
 
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
@@ -53,7 +56,7 @@ namespace cpts_451_yelp
         // Hard coded credentials for the db, yeet!
         private string connectionInfo()
         {
-            return "Host=192.168.0.250; Username=postgres; Database=milestone1db; Password=mustafa";
+            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa";
         }
 
         // Executes the queries, straight out of the video
@@ -110,7 +113,7 @@ namespace cpts_451_yelp
             cityList.Items.Clear();
             data.Clear();
 
-            string cmd = "SELECT distinct state FROM business ORDER BY state";
+            string cmd = "SELECT distinct businessstate FROM businessaddress ORDER BY businessstate";
             executeQuery(cmd, queryStateHelper);
         }
 
@@ -123,8 +126,8 @@ namespace cpts_451_yelp
 
             if (stateList.SelectedIndex > -1)
             {
-                string cmd = "SELECT distinct city FROM business WHERE state = '" +
-                    stateList.SelectedValue.ToString() + "' ORDER BY city";
+                string cmd = "SELECT distinct businesscity FROM businessaddress WHERE businessstate = '" +
+                    stateList.SelectedValue.ToString() + "' ORDER BY businesscity";
                 executeQuery(cmd, queryCityHelper);
             }
         }
@@ -137,9 +140,9 @@ namespace cpts_451_yelp
 
             if (cityList.SelectedIndex > -1)
             {
-                string cmd = "SELECT name, state, city, business_id FROM business WHERE state = '" + 
-                    stateList.SelectedValue.ToString() 
-                    + "' AND city = '" + cityList.SelectedValue.ToString() + "' ORDER BY name";
+                string cmd = "SELECT DISTINCT businessname, businessstate, businesscity, business.businessid FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString()
+                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' ORDER BY businessname";
                 executeQuery(cmd, queryBusinessHelper);
 
                 // Need to connect the grid to the new data each time I think.
@@ -163,8 +166,13 @@ namespace cpts_451_yelp
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
-            data.Add(new Business() { name = R.GetString(0), state = R.GetString(1), 
-                    city = R.GetString(2), bid = R.GetString(3) });
+            data.Add(new Business()
+            {
+                name = R.GetString(0),
+                state = R.GetString(1),
+                city = R.GetString(2),
+                bid = R.GetString(3)
+            });
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
@@ -184,18 +192,46 @@ namespace cpts_451_yelp
         // Adds the columns to the grid.
         private void addColGrid()
         {
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("name"), 
-                    HeaderText = "Business Name", Width = 255, AutoSize = false, 
-                    Resizable = false, Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("state"), 
-                    HeaderText = "State", Width = 60, AutoSize = false, Resizable = false, 
-                    Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("city"), 
-                    HeaderText = "City", Width = 150, AutoSize = false, Resizable = false, 
-                    Sortable = true, Editable = false });
-            grid.Columns.Add(new GridColumn { DataCell = new TextBoxCell("bid"), 
-                    Width = 0, AutoSize = false, Resizable = false, Sortable = true, 
-                    Editable = false, Visible = false });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("name"),
+                HeaderText = "Business Name",
+                Width = 255,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("state"),
+                HeaderText = "State",
+                Width = 60,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("city"),
+                HeaderText = "City",
+                Width = 150,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("bid"),
+                Width = 0,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false,
+                Visible = false
+            });
         }
 
         // This puts all of the UI elements in their places.

@@ -33,7 +33,7 @@ namespace cpts_451_yelp
         // Same connection info as above.
         private string connectionInfo()
         {
-            return "Host=192.168.0.250; Username=postgres; Database=milestone1db; Password=mustafa";
+            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa";
         }
 
         // Same executeQuery function as above, minus the while loop.
@@ -70,16 +70,16 @@ namespace cpts_451_yelp
         // Query for loading the name, city, and state into the business details window.
         private void loadBusinessDetails()
         {
-            string sqlStr = "SELECT name, state, city FROM business WHERE business_id = '" + this.bid + "';";
+            string sqlStr = "SELECT businessname, businessstate, businesscity FROM businessaddress, business WHERE business.businessid = '" + this.bid + "';";
             executeQuery(sqlStr, loadBusinessDetailsHelper);
         }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNums()
         {
-            string sqlStr1 = "SELECT count(*) from business WHERE state = (SELECT state from business WHERE business_id = '" + this.bid + "');";
+            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + this.bid + "');";
             executeQuery(sqlStr1, loadBusinessNumsStateHelper);
-            string sqlStr2 = "SELECT count(*) from business WHERE city = (SELECT city from business WHERE business_id = '" + this.bid + "');";
+            string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
             executeQuery(sqlStr2, loadBusinessNumsCityHelper);
         }
 
