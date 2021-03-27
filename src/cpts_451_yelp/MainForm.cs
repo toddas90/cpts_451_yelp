@@ -17,10 +17,24 @@ namespace cpts_451_yelp
     {
         // Lots of variables, kinda gross.
         TableLayout layout = new TableLayout();
-        DropDown stateList = new DropDown();
-        DropDown cityList = new DropDown();
-        DropDown zipList = new DropDown();
-        DropDown catList = new DropDown();
+        GroupBox selectionBox = new GroupBox(); // Experimental boxes around groups of items.
+        ListBox stateList = new ListBox();
+        ListBox cityList = new ListBox();
+        ListBox zipList = new ListBox();
+        ListBox catList = new ListBox();
+        ListBox selectedCats = new ListBox();
+        Button add = new Button
+        {
+            Text = "Add"
+        };
+        Button search = new Button
+        {
+            Text = "Search"
+        };
+        Button remove = new Button
+        {
+            Text = "Remove"
+        };
         GridView grid = new GridView<Business>
         {
             AllowMultipleSelection = true,
@@ -36,12 +50,14 @@ namespace cpts_451_yelp
         // Event handler for the grid selection event.
         public event EventHandler<EventArgs> SelectionChanged;
 
+        public event EventHandler<EventArgs> Click;
+
 
         // Main Form where everything happens
         public MainForm()
         {
             Title = "Yelp App"; // Title of Application
-            MinimumSize = new Size(800, 600); // Default resolution
+            MinimumSize = new Size(1280, 720); // Default resolution
 
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
@@ -54,7 +70,9 @@ namespace cpts_451_yelp
             cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryZip);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryCat);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
-            catList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
+            add.Click += new EventHandler<EventArgs>(addSelected);
+            remove.Click += new EventHandler<EventArgs>(removeSelected);
+            search.Click += new EventHandler<EventArgs>(queryCategorySearch);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
         }
 
@@ -118,6 +136,7 @@ namespace cpts_451_yelp
             cityList.Items.Clear();
             zipList.Items.Clear();
             catList.Items.Clear();
+            selectedCats.Items.Clear();
             data.Clear();
 
             string cmd = "SELECT distinct businessstate FROM businessaddress ORDER BY businessstate";
@@ -131,6 +150,7 @@ namespace cpts_451_yelp
             cityList.Items.Clear();
             zipList.Items.Clear();
             catList.Items.Clear();
+            selectedCats.Items.Clear();
             data.Clear();
 
             if (stateList.SelectedIndex > -1)
@@ -146,6 +166,7 @@ namespace cpts_451_yelp
             // Again, clears the grid data and the cities list.
             zipList.Items.Clear();
             catList.Items.Clear();
+            selectedCats.Items.Clear();
             data.Clear();
 
             if (cityList.SelectedIndex > -1)
@@ -160,6 +181,7 @@ namespace cpts_451_yelp
         {
             // Again, clears the grid data and the cities list.
             catList.Items.Clear();
+            selectedCats.Items.Clear();
             data.Clear();
 
             if (zipList.SelectedIndex > -1)
@@ -176,27 +198,83 @@ namespace cpts_451_yelp
             // Again again, clears stuff.
             data.Clear();
 
-            if (catList.SelectedIndex > -1)
-            {
-                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, categoryname, business.businessid FROM businessaddress, business, categories
-                    WHERE categories.businessid = business.businessid AND business.businessid = businessaddress.businessid AND categories.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
-                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' AND categoryname = '" + catList.SelectedValue.ToString() +
-                    "' ORDER BY businessname";
-                executeQuery(cmd, queryBusinessHelper);
-
-                // Need to connect the grid to the new data each time I think.
-                grid.DataStore = data;
-                // grid.UnselectAll(); GRRRRRRRRR
-            }
-            else if (zipList.SelectedIndex > -1)
-            {
-                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
+            string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
                     WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
-                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
-                executeQuery(cmd, queryBusinessHelper);
+                + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
+            executeQuery(cmd, queryBusinessHelper);
 
-                // Need to connect the grid to the new data each time I think.
-                grid.DataStore = data;
+            // Need to connect the grid to the new data each time I think.
+            grid.DataStore = data;
+        }
+
+        public void queryCategorySearch(object sender, EventArgs e)
+        {
+            // Again again, clears stuff.
+            data.Clear();
+
+            string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, categoryname, business.businessid FROM businessaddress, business, 
+                (SELECT DISTINCT businessid, categoryname FROM categories WHERE " + stringifyCategories(selectedCats.Items) + ") as narrowedCats " +
+                "WHERE narrowedCats.businessid = business.businessid AND business.businessid = businessaddress.businessid AND narrowedCats.businessid = businessaddress.businessid AND businessstate = '"
+                + stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "'" +
+                "ORDER BY businessname";
+            Console.WriteLine(cmd);
+            executeQuery(cmd, queryBusinessHelper);
+
+            // Need to connect the grid to the new data each time I think.
+            grid.DataStore = data;
+        }
+
+        public string stringifyCategories(ListItemCollection lst)
+        {
+            string ret = " categoryname =" + "'" + lst[0].ToString() + "'";
+            for (int i = 1; i < lst.Count; i++)
+            {
+                ret += " AND categoryname = " + "'" + lst[i].ToString() + "'";
+            }
+            return ret;
+        }
+
+        public void addSelected(object sender, EventArgs e)
+        {
+            for (int i = 0; i < selectedCats.Items.Count; i++)
+            {
+                if (selectedCats.Items[i].ToString() == catList.SelectedValue.ToString())
+                {
+                    Console.WriteLine("Item found");
+                    return;
+                }
+            }
+
+            try
+            {
+                selectedCats.Items.Add(catList.SelectedValue.ToString());
+            }
+            catch (System.NullReferenceException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                MessageBox.Show("Please select a category first!");
+            }
+            finally
+            {
+
+            }
+
+        }
+
+        public void removeSelected(object sender, EventArgs e)
+        {
+            try
+            {
+                selectedCats.Items.RemoveAt(selectedCats.SelectedIndex);
+            }
+            catch (System.ArgumentOutOfRangeException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                MessageBox.Show("Please select a category first!");
+            }
+            finally
+            {
+
             }
         }
 
@@ -224,29 +302,14 @@ namespace cpts_451_yelp
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
-            if (catList.SelectedIndex > -1)
+            data.Add(new Business()
             {
-                data.Add(new Business()
-                {
-                    name = R.GetString(0),
-                    state = R.GetString(1),
-                    city = R.GetString(2),
-                    zip = R.GetString(3),
-                    cat = R.GetString(4),
-                    bid = R.GetString(5)
-                });
-            }
-            else
-            {
-                data.Add(new Business()
-                {
-                    name = R.GetString(0),
-                    state = R.GetString(1),
-                    city = R.GetString(2),
-                    zip = R.GetString(3),
-                    bid = R.GetString(4)
-                });
-            }
+                name = R.GetString(0),
+                state = R.GetString(1),
+                city = R.GetString(2),
+                zip = R.GetString(3),
+                bid = R.GetString(4)
+            });
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
@@ -260,6 +323,12 @@ namespace cpts_451_yelp
         protected virtual void OnSelectionChanged()
         {
             EventHandler<EventArgs> handler = SelectionChanged;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnClick()
+        {
+            EventHandler<EventArgs> handler = Click;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
@@ -348,6 +417,22 @@ namespace cpts_451_yelp
                 TableLayout.AutoSized(catList)
             ));
             layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(add)
+            ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(remove)
+            ));
+
+            layout.Rows.Add(new TableRow(
+                new Label { Text = "Selected" }
+            ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(selectedCats)
+            ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(search)
+            ));
+            layout.Rows.Add(new TableRow(
                 TableLayout.AutoSized(grid)
             ));
             layout.Rows.Add(new TableRow { ScaleHeight = true });
@@ -360,7 +445,6 @@ namespace cpts_451_yelp
             public string state { get; set; }
             public string city { get; set; }
             public string zip { get; set; }
-            public string cat { get; set; }
             public string bid { get; set; }
         }
     }
