@@ -44,7 +44,6 @@ namespace cpts_451_yelp
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
 
-        // Event handler for the dropdown selection event.
         public event EventHandler<EventArgs> SelectedValueChanged;
 
         // Event handler for the grid selection event.
@@ -72,7 +71,7 @@ namespace cpts_451_yelp
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
             add.Click += new EventHandler<EventArgs>(addSelected);
             remove.Click += new EventHandler<EventArgs>(removeSelected);
-            search.Click += new EventHandler<EventArgs>(queryCategorySearch);
+            search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
         }
 
@@ -122,10 +121,18 @@ namespace cpts_451_yelp
             }
             Business B = grid.SelectedItem as Business;
             // Console.WriteLine("Hello from " + B.name); // For debugging!
-            if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
+            try
             {
-                BusinessForm bwindow = new BusinessForm(B.bid.ToString());
-                bwindow.Show();
+                if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
+                {
+                    BusinessForm bwindow = new BusinessForm(B.bid.ToString());
+                    bwindow.Show();
+                }
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                MessageBox.Show("Error: " + ex.Message.ToString());
             }
         }
 
@@ -193,35 +200,44 @@ namespace cpts_451_yelp
         }
 
         // This queries the db fto fill in the grid with info.
+        // public void queryBusiness(object sender, EventArgs e)
+        // {
+        //     // Again again, clears stuff.
+        //     data.Clear();
+
+        //     if (zipList.SelectedIndex > -1)
+        //     {
+        //         string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
+        //             WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
+        //             + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
+        //         executeQuery(cmd, queryBusinessHelper);
+        //     }
+
+        //     // Need to connect the grid to the new data each time I think.
+        //     grid.DataStore = data;
+        // }
+
         public void queryBusiness(object sender, EventArgs e)
         {
-            // Again again, clears stuff.
             data.Clear();
-
-            string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
-                    WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
-                + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
-            executeQuery(cmd, queryBusinessHelper);
-
-            // Need to connect the grid to the new data each time I think.
-            grid.DataStore = data;
-        }
-
-        public void queryCategorySearch(object sender, EventArgs e)
-        {
-            // Again again, clears stuff.
-            data.Clear();
-
-            string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, categoryname, business.businessid FROM businessaddress, business, 
+            if (selectedCats.Items.Count > 0)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid, categoryname FROM businessaddress, business, 
                 (SELECT DISTINCT businessid, categoryname FROM categories WHERE " + stringifyCategories(selectedCats.Items) + ") as narrowedCats " +
-                "WHERE narrowedCats.businessid = business.businessid AND business.businessid = businessaddress.businessid AND narrowedCats.businessid = businessaddress.businessid AND businessstate = '"
-                + stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "'" +
-                "ORDER BY businessname";
-            Console.WriteLine(cmd);
-            executeQuery(cmd, queryBusinessHelper);
-
-            // Need to connect the grid to the new data each time I think.
-            grid.DataStore = data;
+                    "WHERE narrowedCats.businessid = business.businessid AND business.businessid = businessaddress.businessid AND narrowedCats.businessid = businessaddress.businessid AND businessstate = '"
+                    + stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "'" +
+                    "ORDER BY businessname";
+                executeQuery(cmd, queryBusinessHelper);
+                grid.DataStore = data;
+            }
+            else if (zipList.SelectedIndex > -1)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
+                    WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
+                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
+                executeQuery(cmd, queryBusinessHelper);
+                grid.DataStore = data;
+            }
         }
 
         public string stringifyCategories(ListItemCollection lst)
@@ -254,11 +270,6 @@ namespace cpts_451_yelp
                 Console.WriteLine(ex.Message.ToString());
                 MessageBox.Show("Please select a category first!");
             }
-            finally
-            {
-
-            }
-
         }
 
         public void removeSelected(object sender, EventArgs e)
@@ -313,7 +324,8 @@ namespace cpts_451_yelp
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
-        protected virtual void OnSelectedValueChanged()
+
+        protected virtual void OnSelectedValueChangec()
         {
             EventHandler<EventArgs> handler = SelectedValueChanged;
             if (null != Handler) handler(this, EventArgs.Empty);
