@@ -16,13 +16,25 @@ namespace cpts_451_yelp
     public partial class MainForm : Form
     {
         // Lots of variables, kinda gross.
-        TableLayout layout = new TableLayout();
+        DynamicLayout layout = new DynamicLayout();
         GroupBox selectionBox = new GroupBox(); // Experimental boxes around groups of items.
-        ListBox stateList = new ListBox();
-        ListBox cityList = new ListBox();
-        ListBox zipList = new ListBox();
-        ListBox catList = new ListBox();
-        ListBox selectedCats = new ListBox();
+        DropDown stateList = new DropDown();
+        ListBox cityList = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+        ListBox zipList = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+        ListBox catList = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+        ListBox selectedCats = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
         Button add = new Button
         {
             Text = "Add"
@@ -401,53 +413,74 @@ namespace cpts_451_yelp
 
         public void createUI()
         {
-            grid.Size = new Size(515, 300);
-            layout.Spacing = new Size(5, 5);
-            layout.Padding = new Padding(20, 20, 20, 20);
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "State" }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(stateList)
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "City" }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(cityList)
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "Zip Code" }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(zipList)
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "Categories" }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(catList)
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(add)
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(remove)
-            ));
+            layout.Padding = new Padding(10, 0, 10, 10);
+            grid.Size = new Size(515, 400);
+            layout.DefaultSpacing = new Size(5, 5);
 
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "Selected" }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(selectedCats)
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(search)
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(grid)
-            ));
-            layout.Rows.Add(new TableRow { ScaleHeight = true });
+            layout.BeginHorizontal();
+
+            layout.BeginVertical();
+            layout.BeginGroup("Location", new Padding(10, 10, 10, 10));
+
+            layout.BeginHorizontal();
+            //layout.BeginVertical(padding: new Padding(0, 10, 0, 10));
+            layout.AddAutoSized(new Label { Text = "State" });
+            layout.AddAutoSized(stateList);
+            //layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "City" });
+            layout.AddAutoSized(cityList);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Zip Code" });
+            layout.AddAutoSized(zipList);
+            layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
+
+            layout.BeginGroup("Business Category", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Categories" });
+            layout.AddAutoSized(catList);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add);
+            layout.AddAutoSized(remove);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected" });
+            layout.AddAutoSized(selectedCats);
+            layout.BeginCentered();
+            layout.AddAutoSized(search);
+            layout.EndCentered();
+            layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
+
+            layout.EndVertical();
+            layout.EndVertical();
+
+
+            layout.BeginVertical(new Padding(10, 0, 0, 0));
+            layout.BeginGroup("Search Results");
+            layout.BeginCentered();
+            layout.AddAutoSized(grid);
+            layout.EndCentered();
+            layout.EndGroup();
+            layout.EndVertical();
+
+
+            layout.EndHorizontal();
         }
 
         // Business class for the data.
