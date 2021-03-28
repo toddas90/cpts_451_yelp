@@ -4,11 +4,7 @@ using Eto.Drawing;
 using Npgsql;
 
 // TODO:
-// *FIXED* Bug 1: Crashes when you click in the grid but not on an item (empty space).
-// *FIXED* Bug 2: When you go into a city and click on a business, it opens the first
-//          business in the list, then the one you clicked.
-// Implement Feature 1: When you close the main window, close the program.
-// Implement Feature 2: Resizing.
+
 
 namespace cpts_451_yelp
 {
@@ -17,7 +13,6 @@ namespace cpts_451_yelp
     {
         // Lots of variables, kinda gross.
         DynamicLayout layout = new DynamicLayout();
-        GroupBox selectionBox = new GroupBox(); // Experimental boxes around groups of items.
         DropDown stateList = new DropDown();
         ListBox cityList = new ListBox
         {
@@ -211,24 +206,6 @@ namespace cpts_451_yelp
             }
         }
 
-        // This queries the db fto fill in the grid with info.
-        // public void queryBusiness(object sender, EventArgs e)
-        // {
-        //     // Again again, clears stuff.
-        //     data.Clear();
-
-        //     if (zipList.SelectedIndex > -1)
-        //     {
-        //         string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
-        //             WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
-        //             + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
-        //         executeQuery(cmd, queryBusinessHelper);
-        //     }
-
-        //     // Need to connect the grid to the new data each time I think.
-        //     grid.DataStore = data;
-        // }
-
         public void queryBusiness(object sender, EventArgs e)
         {
             data.Clear();
@@ -294,10 +271,6 @@ namespace cpts_451_yelp
             {
                 Console.WriteLine(ex.Message.ToString());
                 MessageBox.Show("Please select a category first!");
-            }
-            finally
-            {
-
             }
         }
 

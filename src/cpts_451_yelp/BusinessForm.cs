@@ -18,6 +18,14 @@ namespace cpts_451_yelp
         private string statenum = "";
         private string citynum = "";
 
+        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+
+        GridView grid = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
         // Main entry point for business window.
         public BusinessForm(string bid) // Main Form
         {
@@ -27,7 +35,10 @@ namespace cpts_451_yelp
 
             loadBusinessDetails(); // Loads the business name, city, and state.
             loadBusinessNums(); // Loads # of businesses in city and state.
+            loadBusinessTipsHelper();
+
             createUI(bid); // Puts everything where it belongs
+            addColGrid();
             this.Content = layout; // Instantiates the layout
         }
 
@@ -52,8 +63,8 @@ namespace cpts_451_yelp
                     {
                         // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
                         var reader = cmd.ExecuteReader();
-                        reader.Read();
-                        myf(reader);
+                        while (reader.Read())
+                            myf(reader);
                     }
                     catch (NpgsqlException ex)
                     {
@@ -71,6 +82,7 @@ namespace cpts_451_yelp
         // Query for loading the name, city, state, and zip into the business details window.
         private void loadBusinessDetails()
         {
+            data.Clear();
             string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
             executeQuery(sqlStr, loadBusinessDetailsHelper);
         }
@@ -82,6 +94,13 @@ namespace cpts_451_yelp
             executeQuery(sqlStr1, loadBusinessNumsStateHelper);
             string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
             executeQuery(sqlStr2, loadBusinessNumsCityHelper);
+        }
+
+        private void loadBusinessTipsHelper()
+        {
+            string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
+            executeQuery(sqlStr, loadBusinessTipsHelper);
+            grid.DataStore = data;
         }
 
         // Helper for assigning business details.
@@ -105,11 +124,24 @@ namespace cpts_451_yelp
             citynum = R.GetInt32(0).ToString();
         }
 
+        private void loadBusinessTipsHelper(NpgsqlDataReader R)
+        {
+            data.Add(new TipInfo()
+            {
+                date = (DateTime)R.GetTimeStamp(0),
+                name = R.GetString(1),
+                likes = R.GetInt32(2),
+                text = R.GetString(3)
+            });
+        }
+
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
             layout.Spacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
+            grid.Size = new Size(500, 500);
+
             layout.Rows.Add(new TableRow(
                 new Label { Text = "Business Name" },
                 new TextBox { Text = bname, ReadOnly = true }
@@ -134,7 +166,61 @@ namespace cpts_451_yelp
                 new Label { Text = "# of Businesses in City" },
                 new Label { Text = citynum }
             ));
+            layout.Rows.Add(new TableRow(
+                TableLayout.AutoSized(grid)
+            ));
             layout.Rows.Add(new TableRow { ScaleHeight = true });
+        }
+        private void addColGrid()
+        {
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Date",
+                Width = 150,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("name"),
+                HeaderText = "Name",
+                Width = 100,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("likes"),
+                HeaderText = "Likes",
+                Width = 50,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("text"),
+                HeaderText = "Text",
+                Width = 200,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+        }
+
+        public class TipInfo
+        {
+            public DateTime date { get; set; }
+            public string name { get; set; }
+            public int likes { get; set; }
+            public string text { get; set; }
         }
     }
 }
