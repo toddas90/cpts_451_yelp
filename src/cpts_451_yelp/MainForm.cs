@@ -85,7 +85,7 @@ namespace cpts_451_yelp
         // Hard coded credentials for the db, yeet!
         private string connectionInfo()
         {
-            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa";
+            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa; Timeout=5";
         }
 
         // Executes the queries, straight out of the video
@@ -93,7 +93,19 @@ namespace cpts_451_yelp
         {
             using (var connection = new NpgsqlConnection(connectionInfo()))
             {
-                connection.Open();
+                try
+                {
+                    connection.Open();
+                }
+                catch (Npgsql.NpgsqlException ex) 
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                    MessageBox.Show(ex.Message.ToString());
+                }
+                finally 
+                {
+                    System.Environment.Exit(1);
+                }
                 using (var cmd = new NpgsqlCommand())
                 {
                     cmd.Connection = connection;
@@ -109,6 +121,11 @@ namespace cpts_451_yelp
                     {
                         Console.WriteLine(ex.Message.ToString());
                         MessageBox.Show("SQL Error - " + ex.Message.ToString());
+                    }
+                    catch (System.TimeoutException ex) 
+                    {
+                        Console.WriteLine(ex.Message.ToString());
+                        MessageBox.Show(ex.Message.ToString());
                     }
                     finally
                     {
