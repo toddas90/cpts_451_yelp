@@ -63,7 +63,7 @@ namespace cpts_451_yelp
             AllowEmptySelection = true
         };
 
-        private String currentUser = " ";
+        UserInfo currentUser = new UserInfo();
 
         SharedInfo s = new SharedInfo();
 
@@ -131,8 +131,9 @@ namespace cpts_451_yelp
         {
             try
             {
-                userForm uwindow = new userForm(currentUser);
+                userForm uwindow = new userForm();
                 uwindow.Show();
+                currentUser = uwindow.currentUser;
             }
             catch (System.InvalidOperationException ex)
             {
