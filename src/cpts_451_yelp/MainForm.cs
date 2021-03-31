@@ -13,6 +13,16 @@ namespace cpts_451_yelp
     {
         // Lots of variables, kinda gross.
         DynamicLayout layout = new DynamicLayout();
+
+        TabControl tabs = new TabControl();
+        TabPage businessTab = new TabPage
+        {
+            Text = "Business Info"
+        };
+        TabPage UserTab = new TabPage
+        {
+            Text = "User Info"
+        };
         DropDown stateList = new DropDown();
         ListBox cityList = new ListBox
         {
@@ -357,6 +367,12 @@ namespace cpts_451_yelp
             layout.Padding = new Padding(10, 0, 10, 10);
             grid.Size = new Size(515, 400);
             layout.DefaultSpacing = new Size(5, 5);
+
+            //businessTab.
+
+            tabs.Pages.Add(businessTab);
+            tabs.Pages.Add(UserTab);
+            layout.Add(tabs);
 
             layout.BeginHorizontal();
 
