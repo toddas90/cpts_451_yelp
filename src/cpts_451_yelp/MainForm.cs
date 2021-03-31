@@ -14,15 +14,15 @@ namespace cpts_451_yelp
         // Lots of variables, kinda gross.
         DynamicLayout layout = new DynamicLayout();
 
-        TabControl tabs = new TabControl();
-        TabPage businessTab = new TabPage
-        {
-            Text = "Business Info"
-        };
-        TabPage UserTab = new TabPage
-        {
-            Text = "User Info"
-        };
+        // TabControl tabs = new TabControl();
+        // TabPage businessTab = new TabPage
+        // {
+        //     Text = "Business Info"
+        // };
+        // TabPage UserTab = new TabPage
+        // {
+        //     Text = "User Info"
+        // };
         DropDown stateList = new DropDown();
         ListBox cityList = new ListBox
         {
@@ -52,11 +52,18 @@ namespace cpts_451_yelp
         {
             Text = "Remove"
         };
+
+        Button user = new Button
+        {
+            Text = "User"
+        };
         GridView grid = new GridView<Business>
         {
             AllowMultipleSelection = true,
             AllowEmptySelection = true
         };
+
+        private String currentUser = " ";
 
         SharedInfo s = new SharedInfo();
 
@@ -92,6 +99,7 @@ namespace cpts_451_yelp
             remove.Click += new EventHandler<EventArgs>(removeSelected);
             search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
+            user.Click += new EventHandler<EventArgs>(userWindow);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -111,6 +119,20 @@ namespace cpts_451_yelp
                     BusinessForm bwindow = new BusinessForm(B.bid.ToString());
                     bwindow.Show();
                 }
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                MessageBox.Show("Error: " + ex.Message.ToString());
+            }
+        }
+
+        public void userWindow(object sender, EventArgs e)
+        {
+            try
+            {
+                userForm uwindow = new userForm(currentUser);
+                uwindow.Show();
             }
             catch (System.InvalidOperationException ex)
             {
@@ -368,12 +390,6 @@ namespace cpts_451_yelp
             grid.Size = new Size(515, 400);
             layout.DefaultSpacing = new Size(5, 5);
 
-            //businessTab.
-
-            tabs.Pages.Add(businessTab);
-            tabs.Pages.Add(UserTab);
-            layout.Add(tabs);
-
             layout.BeginHorizontal();
 
             layout.BeginVertical();
@@ -424,7 +440,16 @@ namespace cpts_451_yelp
             layout.EndHorizontal();
             layout.EndGroup();
 
+            layout.BeginHorizontal();
+            layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(user);
             layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
+            layout.EndHorizontal();
+
             layout.EndVertical();
 
 
