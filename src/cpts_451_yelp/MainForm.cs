@@ -116,7 +116,10 @@ namespace cpts_451_yelp
             {
                 if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
                 {
-                    BusinessForm bwindow = new BusinessForm(B.bid.ToString(), currentUser);
+                    BusinessForm bwindow = new BusinessForm(
+                        B.bid.ToString(),
+                        currentUser
+                    );
                     bwindow.Show();
                 }
             }
@@ -152,7 +155,8 @@ namespace cpts_451_yelp
             selectedCats.Items.Clear();
             data.Clear();
 
-            string cmd = "SELECT distinct businessstate FROM businessaddress ORDER BY businessstate";
+            string cmd = @"SELECT distinct businessstate FROM businessaddress
+                ORDER BY businessstate";
             s.executeQuery(cmd, queryStateHelper);
         }
 
@@ -168,8 +172,10 @@ namespace cpts_451_yelp
 
             if (stateList.SelectedIndex > -1)
             {
-                string cmd = "SELECT distinct businesscity FROM businessaddress WHERE businessstate = '" +
-                    stateList.SelectedValue.ToString() + "' ORDER BY businesscity";
+                string cmd = @"SELECT distinct businesscity FROM businessaddress
+                    WHERE businessstate = '" +
+                    stateList.SelectedValue.ToString() +
+                    "' ORDER BY businesscity";
                 s.executeQuery(cmd, queryCityHelper);
             }
         }
@@ -184,8 +190,11 @@ namespace cpts_451_yelp
 
             if (cityList.SelectedIndex > -1)
             {
-                string cmd = "SELECT distinct businesspostalcode FROM businessaddress WHERE businessstate = '" +
-                    stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' ORDER BY businesspostalcode";
+                string cmd = @"SELECT distinct businesspostalcode FROM 
+                    businessaddress WHERE businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND 
+                    businesscity = '" + cityList.SelectedValue.ToString() +
+                    "' ORDER BY businesspostalcode";
                 s.executeQuery(cmd, queryZipHelper);
             }
         }
@@ -199,8 +208,14 @@ namespace cpts_451_yelp
 
             if (zipList.SelectedIndex > -1)
             {
-                string cmd = "SELECT DISTINCT categoryname FROM categories, businessaddress, business WHERE categories.businessid = business.businessid AND business.businessid = businessaddress.businessid AND businessstate = '" +
-                    stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY categoryname";
+                string cmd = @"SELECT DISTINCT categoryname FROM categories,
+                    businessaddress, business WHERE categories.businessid = 
+                    business.businessid AND business.businessid = 
+                    businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity =
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                    + "' ORDER BY categoryname";
                 s.executeQuery(cmd, queryCatHelper);
             }
         }
@@ -210,21 +225,34 @@ namespace cpts_451_yelp
             data.Clear();
             if (selectedCats.Items.Count > 0)
             {
-                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid 
-                FROM businessaddress, business, categories, (SELECT DISTINCT  businessID, COUNT(businessID) as count FROM categories 
-                WHERE " + stringifyCategories(selectedCats.Items) + @" GROUP BY businessID) as num WHERE categories.businessid = business.businessid 
-                AND business.businessid = businessaddress.businessid AND categories.businessid = businessaddress.businessid 
-                AND business.businessID = num.businessid AND num.count = '" + selectedCats.Items.Count + "' AND businessstate = '" + stateList.SelectedValue.ToString() + @"'  
-                AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + @"'
-                ORDER BY businessname";
+                string cmd = @"SELECT DISTINCT businessname, businessstate,
+                    businesscity, businesspostalcode, business.businessid 
+                    FROM businessaddress, business, categories, (SELECT 
+                    DISTINCT  businessID, COUNT(businessID) as count FROM 
+                    categories WHERE " + stringifyCategories(selectedCats.Items)
+                    + @" GROUP BY businessID) as num WHERE categories.businessid
+                    = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND categories.businessid = 
+                    businessaddress.businessid AND business.businessID = 
+                    num.businessid AND num.count = '" + selectedCats.Items.Count
+                    + "' AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                    + @"' ORDER BY businessname";
                 s.executeQuery(cmd, queryBusinessHelper);
                 grid.DataStore = data;
             }
             else if (zipList.SelectedIndex > -1)
             {
-                string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
-                    WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
-                    + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
+                string cmd = @"SELECT DISTINCT businessname, businessstate, 
+                    businesscity, businesspostalcode, business.businessid FROM 
+                    businessaddress, business WHERE business.businessid = 
+                    businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    "' ORDER BY businessname";
                 s.executeQuery(cmd, queryBusinessHelper);
                 grid.DataStore = data;
             }
