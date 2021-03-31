@@ -229,14 +229,9 @@ namespace cpts_451_yelp
                 FROM businessaddress, business, categories, (SELECT DISTINCT  businessID, COUNT(businessID) as count FROM categories 
                 WHERE " + stringifyCategories(selectedCats.Items) + @" GROUP BY businessID) as num WHERE categories.businessid = business.businessid 
                 AND business.businessid = businessaddress.businessid AND categories.businessid = businessaddress.businessid 
-                AND business.businessID = num.businessid AND num.count = '" + selectedCats.Items.Count +"' AND businessstate = '" + stateList.SelectedValue.ToString() + @"'  
+                AND business.businessID = num.businessid AND num.count = '" + selectedCats.Items.Count + "' AND businessstate = '" + stateList.SelectedValue.ToString() + @"'  
                 AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + @"'
                 ORDER BY businessname";
-                // string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid, categoryname FROM businessaddress, business, 
-                // (SELECT DISTINCT businessid, categoryname FROM categories WHERE " + stringifyCategories(selectedCats.Items) + ") as narrowedCats " +
-                //     "WHERE narrowedCats.businessid = business.businessid AND business.businessid = businessaddress.businessid AND narrowedCats.businessid = businessaddress.businessid AND businessstate = '"
-                //     + stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "'" +
-                //     "ORDER BY businessname";
                 executeQuery(cmd, queryBusinessHelper);
                 grid.DataStore = data;
             }
