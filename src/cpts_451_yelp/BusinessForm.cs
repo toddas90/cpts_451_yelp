@@ -18,6 +18,8 @@ namespace cpts_451_yelp
         private string statenum = "";
         private string citynum = "";
 
+        private UserInfo user;
+
         SharedInfo s = new SharedInfo();
 
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
@@ -29,11 +31,12 @@ namespace cpts_451_yelp
         };
 
         // Main entry point for business window.
-        public BusinessForm(string bid) // Main Form
+        public BusinessForm(string bid, UserInfo inUser) // Main Form
         {
             Title = "Business Details"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
             this.bid = String.Copy(bid);
+            this.user = inUser;
 
             loadBusinessDetails(); // Loads the business name, city, and state.
             loadBusinessNums(); // Loads # of businesses in city and state.
@@ -103,6 +106,9 @@ namespace cpts_451_yelp
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
+            // Recreate the UI using a DynamicLayout instead of TableLayout.
+            // Maybe use an if to see if there is a user selected. If so, add an "Add Tip" button and textbox.
+            // If not, don't. Just let them view tips, like now.
             layout.Spacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
             grid.Size = new Size(500, 500);
