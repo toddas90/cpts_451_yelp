@@ -97,13 +97,10 @@ namespace cpts_451_yelp
                 {
                     connection.Open();
                 }
-                catch (Npgsql.NpgsqlException ex) 
+                catch (Npgsql.NpgsqlException ex)
                 {
                     Console.WriteLine(ex.Message.ToString());
                     MessageBox.Show(ex.Message.ToString());
-                }
-                finally 
-                {
                     System.Environment.Exit(1);
                 }
                 using (var cmd = new NpgsqlCommand())
@@ -122,7 +119,7 @@ namespace cpts_451_yelp
                         Console.WriteLine(ex.Message.ToString());
                         MessageBox.Show("SQL Error - " + ex.Message.ToString());
                     }
-                    catch (System.TimeoutException ex) 
+                    catch (System.TimeoutException ex)
                     {
                         Console.WriteLine(ex.Message.ToString());
                         MessageBox.Show(ex.Message.ToString());
@@ -228,6 +225,8 @@ namespace cpts_451_yelp
             data.Clear();
             if (selectedCats.Items.Count > 0)
             {
+                // string cmd = @"SELECT DISTINCT categories.businessID, count FROM categories, (SELECT businessID, COUNT(businessID) as count FROM categories
+                //     WHERE " + stringifyCategories(selectedCats.Items) + " GROUP BY businessID) as num WHERE categories.businessID = num.businessid AND num.count = ; ";
                 string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid, categoryname FROM businessaddress, business, 
                 (SELECT DISTINCT businessid, categoryname FROM categories WHERE " + stringifyCategories(selectedCats.Items) + ") as narrowedCats " +
                     "WHERE narrowedCats.businessid = business.businessid AND business.businessid = businessaddress.businessid AND narrowedCats.businessid = businessaddress.businessid AND businessstate = '"
@@ -251,7 +250,7 @@ namespace cpts_451_yelp
             string ret = " categoryname =" + "'" + lst[0].ToString() + "'";
             for (int i = 1; i < lst.Count; i++)
             {
-                ret += " AND categoryname = " + "'" + lst[i].ToString() + "'";
+                ret += " OR categoryname = " + "'" + lst[i].ToString() + "'";
             }
             return ret;
         }
