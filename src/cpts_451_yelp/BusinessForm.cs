@@ -18,6 +18,8 @@ namespace cpts_451_yelp
         private string statenum = "";
         private string citynum = "";
 
+        SharedInfo s = new SharedInfo();
+
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
 
         GridView grid = new GridView<TipInfo>
@@ -42,64 +44,27 @@ namespace cpts_451_yelp
             this.Content = layout; // Instantiates the layout
         }
 
-        // Same connection info as above.
-        private string connectionInfo()
-        {
-            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa";
-        }
-
-        // Same executeQuery function as above, minus the while loop.
-        // Taken straight from the video.
-        private void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf)
-        {
-            using (var connection = new NpgsqlConnection(connectionInfo()))
-            {
-                connection.Open();
-                using (var cmd = new NpgsqlCommand())
-                {
-                    cmd.Connection = connection;
-                    cmd.CommandText = sqlstr;
-                    try
-                    {
-                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
-                        var reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            myf(reader);
-                    }
-                    catch (NpgsqlException ex)
-                    {
-                        Console.WriteLine(ex.Message.ToString());
-                        MessageBox.Show("SQL Error - " + ex.Message.ToString());
-                    }
-                    finally
-                    {
-                        connection.Close();
-                    }
-                }
-            }
-        }
-
         // Query for loading the name, city, state, and zip into the business details window.
         private void loadBusinessDetails()
         {
             data.Clear();
             string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
-            executeQuery(sqlStr, loadBusinessDetailsHelper);
+            s.executeQuery(sqlStr, loadBusinessDetailsHelper);
         }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNums()
         {
             string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + this.bid + "');";
-            executeQuery(sqlStr1, loadBusinessNumsStateHelper);
+            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper);
             string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
-            executeQuery(sqlStr2, loadBusinessNumsCityHelper);
+            s.executeQuery(sqlStr2, loadBusinessNumsCityHelper);
         }
 
         private void loadBusinessTipsHelper()
         {
             string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
-            executeQuery(sqlStr, loadBusinessTipsHelper);
+            s.executeQuery(sqlStr, loadBusinessTipsHelper);
             grid.DataStore = data;
         }
 
@@ -213,14 +178,6 @@ namespace cpts_451_yelp
                 Sortable = true,
                 Editable = false
             });
-        }
-
-        public class TipInfo
-        {
-            public DateTime date { get; set; }
-            public string name { get; set; }
-            public int likes { get; set; }
-            public string text { get; set; }
         }
     }
 }

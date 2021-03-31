@@ -48,6 +48,8 @@ namespace cpts_451_yelp
             AllowEmptySelection = true
         };
 
+        SharedInfo s = new SharedInfo();
+
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
 
@@ -80,56 +82,6 @@ namespace cpts_451_yelp
             remove.Click += new EventHandler<EventArgs>(removeSelected);
             search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
-        }
-
-        // Hard coded credentials for the db, yeet!
-        private string connectionInfo()
-        {
-            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa; Timeout=5";
-        }
-
-        // Executes the queries, straight out of the video
-        private void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf)
-        {
-            using (var connection = new NpgsqlConnection(connectionInfo()))
-            {
-                try
-                {
-                    connection.Open();
-                }
-                catch (Npgsql.NpgsqlException ex)
-                {
-                    Console.WriteLine(ex.Message.ToString());
-                    MessageBox.Show(ex.Message.ToString());
-                    System.Environment.Exit(1);
-                }
-                using (var cmd = new NpgsqlCommand())
-                {
-                    cmd.Connection = connection;
-                    cmd.CommandText = sqlstr;
-                    try
-                    {
-                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
-                        var reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            myf(reader);
-                    }
-                    catch (NpgsqlException ex)
-                    {
-                        Console.WriteLine(ex.Message.ToString());
-                        MessageBox.Show("SQL Error - " + ex.Message.ToString());
-                    }
-                    catch (System.TimeoutException ex)
-                    {
-                        Console.WriteLine(ex.Message.ToString());
-                        MessageBox.Show(ex.Message.ToString());
-                    }
-                    finally
-                    {
-                        connection.Close();
-                    }
-                }
-            }
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -168,7 +120,7 @@ namespace cpts_451_yelp
             data.Clear();
 
             string cmd = "SELECT distinct businessstate FROM businessaddress ORDER BY businessstate";
-            executeQuery(cmd, queryStateHelper);
+            s.executeQuery(cmd, queryStateHelper);
         }
 
         // This queries the db for the cities.
@@ -185,7 +137,7 @@ namespace cpts_451_yelp
             {
                 string cmd = "SELECT distinct businesscity FROM businessaddress WHERE businessstate = '" +
                     stateList.SelectedValue.ToString() + "' ORDER BY businesscity";
-                executeQuery(cmd, queryCityHelper);
+                s.executeQuery(cmd, queryCityHelper);
             }
         }
 
@@ -201,7 +153,7 @@ namespace cpts_451_yelp
             {
                 string cmd = "SELECT distinct businesspostalcode FROM businessaddress WHERE businessstate = '" +
                     stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' ORDER BY businesspostalcode";
-                executeQuery(cmd, queryZipHelper);
+                s.executeQuery(cmd, queryZipHelper);
             }
         }
 
@@ -216,7 +168,7 @@ namespace cpts_451_yelp
             {
                 string cmd = "SELECT DISTINCT categoryname FROM categories, businessaddress, business WHERE categories.businessid = business.businessid AND business.businessid = businessaddress.businessid AND businessstate = '" +
                     stateList.SelectedValue.ToString() + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY categoryname";
-                executeQuery(cmd, queryCatHelper);
+                s.executeQuery(cmd, queryCatHelper);
             }
         }
 
@@ -232,7 +184,7 @@ namespace cpts_451_yelp
                 AND business.businessID = num.businessid AND num.count = '" + selectedCats.Items.Count + "' AND businessstate = '" + stateList.SelectedValue.ToString() + @"'  
                 AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + @"'
                 ORDER BY businessname";
-                executeQuery(cmd, queryBusinessHelper);
+                s.executeQuery(cmd, queryBusinessHelper);
                 grid.DataStore = data;
             }
             else if (zipList.SelectedIndex > -1)
@@ -240,7 +192,7 @@ namespace cpts_451_yelp
                 string cmd = @"SELECT DISTINCT businessname, businessstate, businesscity, businesspostalcode, business.businessid FROM businessaddress, business
                     WHERE business.businessid = businessaddress.businessid AND businessstate = '" + stateList.SelectedValue.ToString()
                     + "' AND businesscity = '" + cityList.SelectedValue.ToString() + "' AND businesspostalcode = '" + zipList.SelectedValue.ToString() + "' ORDER BY businessname";
-                executeQuery(cmd, queryBusinessHelper);
+                s.executeQuery(cmd, queryBusinessHelper);
                 grid.DataStore = data;
             }
         }
@@ -470,16 +422,6 @@ namespace cpts_451_yelp
 
 
             layout.EndHorizontal();
-        }
-
-        // Business class for the data.
-        public class Business
-        {
-            public string name { get; set; }
-            public string state { get; set; }
-            public string city { get; set; }
-            public string zip { get; set; }
-            public string bid { get; set; }
         }
     }
 }
