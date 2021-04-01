@@ -125,7 +125,7 @@ namespace cpts_451_yelp
             String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
             AND businessid = '" + this.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
             s.executeQuery(check,tipExists,true);
-            if (user.UserID != null && !isDuplicate) 
+            if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0) 
             {
 
                 string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
@@ -133,6 +133,10 @@ namespace cpts_451_yelp
                     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
                     s.executeQuery(cmd, empty, false);
                     loadBusinessTipsHelper();
+            }
+            else if(newTip.Text.Length == 0)
+            {
+                MessageBox.Show("Cannot submit an empty tip!");
             }
             else if(isDuplicate)
             {

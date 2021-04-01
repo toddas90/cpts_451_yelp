@@ -63,6 +63,8 @@ namespace cpts_451_yelp
         {
             if(nameList.SelectedIndex > -1){
                 currentUser.UserID = nameList.SelectedValue.ToString();
+                currentUser.Username = nameBox.Text.ToString();
+                MessageBox.Show("Logged in as: " + currentUser.Username);
             }
         }
 
