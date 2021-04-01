@@ -9,78 +9,83 @@ namespace cpts_451_yelp
     public partial class BusinessForm : Form
     {
         // Bunch of gross variables.
-        TableLayout layout = new TableLayout();
+        DynamicLayout layout = new DynamicLayout();
+        Button addTip = new Button
+        {
+                Text = "Add Tip"
+        };
         private string bid = "";
         private string bname = "";
         private string bstate = "";
         private string bcity = "";
+        private string bzip = "";
         private string statenum = "";
         private string citynum = "";
 
+        private bool isDuplicate;
+
+        private UserInfo user;
+
+        SharedInfo s = new SharedInfo();
+        
+        TextBox newTip = new TextBox
+        {
+            PlaceholderText = "New Tip",
+            Size = new Size (800,-1)
+        };
+
+        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+
+        GridView grid = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
+        public event EventHandler<EventArgs> Click;
+
         // Main entry point for business window.
-        public BusinessForm(string bid) // Main Form
+        public BusinessForm(string bid, UserInfo inUser) // Main Form
         {
             Title = "Business Details"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
             this.bid = String.Copy(bid);
+            this.user = inUser;
 
             loadBusinessDetails(); // Loads the business name, city, and state.
             loadBusinessNums(); // Loads # of businesses in city and state.
+            loadBusinessTipsHelper();
+
             createUI(bid); // Puts everything where it belongs
+            addColGrid();
             this.Content = layout; // Instantiates the layout
+
+            addTip.Click += new EventHandler<EventArgs>(addTipHelper);
         }
 
-        // Same connection info as above.
-        private string connectionInfo()
-        {
-            return "Host=192.168.0.250; Username=postgres; Database=milestone1db; Password=mustafa";
-        }
-
-        // Same executeQuery function as above, minus the while loop.
-        // Taken straight from the video.
-        private void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf)
-        {
-            using (var connection = new NpgsqlConnection(connectionInfo()))
-            {
-                connection.Open();
-                using (var cmd = new NpgsqlCommand())
-                {
-                    cmd.Connection = connection;
-                    cmd.CommandText = sqlstr;
-                    try
-                    {
-                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
-                        var reader = cmd.ExecuteReader();
-                        reader.Read();
-                        myf(reader);
-                    }
-                    catch (NpgsqlException ex)
-                    {
-                        Console.WriteLine(ex.Message.ToString());
-                        MessageBox.Show("SQL Error - " + ex.Message.ToString());
-                    }
-                    finally
-                    {
-                        connection.Close();
-                    }
-                }
-            }
-        }
-
-        // Query for loading the name, city, and state into the business details window.
+        // Query for loading the name, city, state, and zip into the business details window.
         private void loadBusinessDetails()
         {
-            string sqlStr = "SELECT name, state, city FROM business WHERE business_id = '" + this.bid + "';";
-            executeQuery(sqlStr, loadBusinessDetailsHelper);
+            data.Clear();
+            string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
+            s.executeQuery(sqlStr, loadBusinessDetailsHelper, true);
         }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNums()
         {
-            string sqlStr1 = "SELECT count(*) from business WHERE state = (SELECT state from business WHERE business_id = '" + this.bid + "');";
-            executeQuery(sqlStr1, loadBusinessNumsStateHelper);
-            string sqlStr2 = "SELECT count(*) from business WHERE city = (SELECT city from business WHERE business_id = '" + this.bid + "');";
-            executeQuery(sqlStr2, loadBusinessNumsCityHelper);
+            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + this.bid + "');";
+            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
+            string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
+            s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
+        }
+
+        private void loadBusinessTipsHelper()
+        {
+            data.Clear();
+            string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
+            s.executeQuery(sqlStr, loadBusinessTipsHelper, true);
+            grid.DataStore = data;
         }
 
         // Helper for assigning business details.
@@ -89,6 +94,7 @@ namespace cpts_451_yelp
             bname = R.GetString(0);
             bstate = R.GetString(1);
             bcity = R.GetString(2);
+            bzip = R.GetString(3);
         }
 
         // Helper for assigning state business numbers.
@@ -103,32 +109,158 @@ namespace cpts_451_yelp
             citynum = R.GetInt32(0).ToString();
         }
 
+        private void loadBusinessTipsHelper(NpgsqlDataReader R)
+        {
+            data.Add(new TipInfo()
+            {
+                date = (DateTime)R.GetTimeStamp(0),
+                name = R.GetString(1),
+                likes = R.GetInt32(2),
+                text = R.GetString(3)
+            });
+        }
+
+        private void addTipHelper(object sender, EventArgs e) 
+        {
+            String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
+            AND businessid = '" + this.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
+            s.executeQuery(check,tipExists,true);
+            if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0) 
+            {
+
+                string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
+                    VALUES ('" + user.UserID + "', '" + this.bid + "', '" + 
+                    DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
+                    s.executeQuery(cmd, empty, false);
+                    loadBusinessTipsHelper();
+            }
+            else if(newTip.Text.Length == 0)
+            {
+                MessageBox.Show("Cannot submit an empty tip!");
+            }
+            else if(isDuplicate)
+            {
+                MessageBox.Show("That tip already exists!");
+            }
+            else
+            {
+                MessageBox.Show("You must log in before you submit a tip!");
+            }
+        }
+
+        private void tipExists(NpgsqlDataReader R){
+            if(R.HasRows)
+            {
+                isDuplicate = true;
+            }
+            else
+            {
+                isDuplicate = false;
+            }
+        }
+
+        private void empty(NpgsqlDataReader R) {
+            
+        }
+
+        protected virtual void OnClick()
+        {
+            EventHandler<EventArgs> handler = Click;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
-            layout.Spacing = new Size(5, 5);
+            layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "Business Name" },
-                new TextBox { Text = bname, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
+            grid.Size = new Size(800, 400);
+
+            layout.BeginVertical();
+
+
+            layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
+            layout.AddRow(
+                new Label { Text = "Business Name" }, 
+                new TextBox { Text = bname, ReadOnly = true}
+            );
+            layout.AddRow(
                 new Label { Text = "State" },
                 new TextBox { Text = bstate, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
+            );
+            layout.AddRow(
                 new Label { Text = "City" },
                 new TextBox { Text = bcity, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "# of Businesses in State" },
-                new Label { Text = statenum }
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "# of Businesses in City" },
-                new Label { Text = citynum }
-            ));
-            layout.Rows.Add(new TableRow { ScaleHeight = true });
+            );
+            layout.AddRow(
+                new Label { Text = "Zip" },
+                new TextBox { Text = bzip, ReadOnly = true }
+            );
+            layout.AddRow(
+                new Label { Text = "Businesses in State" },
+                new TextBox {Text = statenum, ReadOnly = true }
+            );
+            layout.AddRow(
+                new Label { Text = "Businesses in City" },
+                new TextBox {Text = citynum, ReadOnly = true }
+            );
+            layout.EndGroup();
+
+            layout.BeginGroup("Tips", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.AddAutoSized(grid);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(newTip);
+            layout.AddAutoSized(addTip);
+            layout.EndHorizontal();
+            layout.EndGroup();
+
+
+            layout.EndVertical();
+        }
+        private void addColGrid()
+        {
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Date",
+                Width = 150,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("name"),
+                HeaderText = "Name",
+                Width = 100,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("likes"),
+                HeaderText = "Likes",
+                Width = 50,
+                AutoSize = false,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("text"),
+                HeaderText = "Text",
+                //Width = 200,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
         }
     }
 }

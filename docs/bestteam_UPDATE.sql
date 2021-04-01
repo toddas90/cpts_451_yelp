@@ -1,21 +1,23 @@
 -- update checkInCount in Business 
 UPDATE Business
-SET checkInCount = Temp.numCheckIns
+SET checkInCount = Temp.numChecks
 FROM (
-        SELECT businessID,
-            COUNT(checkInDate) as numCheckIns
-        FROM ChecksIn
-        GROUP BY businessID
+        SELECT business.businessID,
+            COUNT(ChecksIn.businessID) as numChecks
+        FROM Business
+            LEFT JOIN ChecksIn ON Business.businessID = ChecksIn.businessID
+        GROUP BY business.businessID
     ) as Temp
 WHERE Business.businessID = Temp.businessID;
 -- update tipCount in Business 
 UPDATE Business
 SET tipCount = Temp.numTips
 FROM (
-        SELECT businessID,
-            COUNT(userID) as numTips
-        FROM Tip
-        GROUP BY businessID
+        SELECT business.businessID,
+            COUNT(tip.businessID) as numTips
+        FROM Business
+            LEFT JOIN Tip ON Business.businessID = Tip.businessID
+        GROUP BY business.businessID
     ) as Temp
 WHERE Business.businessID = Temp.businessID;
 -- update totalLikes in Users
@@ -34,11 +36,10 @@ WHERE Users.userID = Temp.userID;
 UPDATE Users
 SET tipCount = Temp.numTips
 FROM (
-        SELECT userID,
-            businessID,
-            COUNT(dateWritten) as numTips
-        FROM Tip
-        GROUP BY userID,
-            businessID
+        SELECT Users.userID,
+            COUNT(Tip.userID) as numTips
+        FROM Users
+            LEFT JOIN Tip ON Users.userID = Tip.userID
+        GROUP BY Users.userID
     ) as Temp
 WHERE Users.userID = Temp.userID;
