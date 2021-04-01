@@ -1,6 +1,6 @@
 -- update checkInCount in Business 
 UPDATE Business
-SET checkInCount = Temp.numCheckIns
+SET checkInCount = Temp.numChecks
 FROM (
         SELECT business.businessID,
             COUNT(ChecksIn.businessID) as numChecks

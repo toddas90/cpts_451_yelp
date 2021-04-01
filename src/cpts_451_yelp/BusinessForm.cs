@@ -22,6 +22,8 @@ namespace cpts_451_yelp
         private string statenum = "";
         private string citynum = "";
 
+        private bool isDuplicate;
+
         private UserInfo user;
 
         SharedInfo s = new SharedInfo();
@@ -80,6 +82,7 @@ namespace cpts_451_yelp
 
         private void loadBusinessTipsHelper()
         {
+            data.Clear();
             string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
             s.executeQuery(sqlStr, loadBusinessTipsHelper, true);
             grid.DataStore = data;
@@ -119,15 +122,36 @@ namespace cpts_451_yelp
 
         private void addTipHelper(object sender, EventArgs e) 
         {
-            if (user.UserID != null) {
+            String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
+            AND businessid = '" + this.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
+            s.executeQuery(check,tipExists,true);
+            if (user.UserID != null && !isDuplicate) 
+            {
+
                 string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
                     VALUES ('" + user.UserID + "', '" + this.bid + "', '" + 
                     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
                     s.executeQuery(cmd, empty, false);
+                    loadBusinessTipsHelper();
+            }
+            else if(isDuplicate)
+            {
+                MessageBox.Show("That tip already exists!");
             }
             else
             {
                 MessageBox.Show("You must log in before you submit a tip!");
+            }
+        }
+
+        private void tipExists(NpgsqlDataReader R){
+            if(R.HasRows)
+            {
+                isDuplicate = true;
+            }
+            else
+            {
+                isDuplicate = false;
             }
         }
 

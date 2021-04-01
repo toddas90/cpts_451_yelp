@@ -365,8 +365,8 @@ namespace cpts_451_yelp
             {
                 DataCell = new TextBoxCell("name"),
                 HeaderText = "Business Name",
-                Width = 255,
-                AutoSize = false,
+                //Width = 300,
+                AutoSize = true,
                 Resizable = false,
                 Sortable = true,
                 Editable = false
@@ -409,14 +409,14 @@ namespace cpts_451_yelp
                 Resizable = false,
                 Sortable = true,
                 Editable = false,
-                Visible = true
+                Visible = false
             });
         }
 
         public void createUI()
         {
             layout.Padding = new Padding(10, 0, 10, 10);
-            grid.Size = new Size(515, 400);
+            grid.Size = new Size(700, 400);
             layout.DefaultSpacing = new Size(5, 5);
 
             layout.BeginHorizontal();

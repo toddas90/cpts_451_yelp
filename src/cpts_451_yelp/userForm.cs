@@ -46,6 +46,7 @@ namespace cpts_451_yelp
 
         public void queryName(object sender, EventArgs e)
         {
+            nameList.Items.Clear();
             string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
                         INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() +"'";
             s.executeQuery(cmd, queryNameHelper, true);
