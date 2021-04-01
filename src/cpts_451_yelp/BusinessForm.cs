@@ -28,7 +28,8 @@ namespace cpts_451_yelp
         
         TextBox newTip = new TextBox
         {
-            PlaceholderText = "New Tip"
+            PlaceholderText = "New Tip",
+            Size = new Size (800,-1)
         };
 
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
@@ -65,22 +66,22 @@ namespace cpts_451_yelp
         {
             data.Clear();
             string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
-            s.executeQuery(sqlStr, loadBusinessDetailsHelper);
+            s.executeQuery(sqlStr, loadBusinessDetailsHelper, true);
         }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNums()
         {
             string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + this.bid + "');";
-            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper);
+            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
             string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
-            s.executeQuery(sqlStr2, loadBusinessNumsCityHelper);
+            s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
         }
 
         private void loadBusinessTipsHelper()
         {
             string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
-            s.executeQuery(sqlStr, loadBusinessTipsHelper);
+            s.executeQuery(sqlStr, loadBusinessTipsHelper, true);
             grid.DataStore = data;
         }
 
@@ -119,12 +120,19 @@ namespace cpts_451_yelp
         private void addTipHelper(object sender, EventArgs e) 
         {
             if (user.UserID != null) {
-                // Insert text into database, newTip.Text.ToString();
+                string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
+                    VALUES ('" + user.UserID + "', '" + this.bid + "', '" + 
+                    DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
+                    s.executeQuery(cmd, empty, false);
             }
             else
             {
                 MessageBox.Show("You must log in before you submit a tip!");
             }
+        }
+
+        private void empty(NpgsqlDataReader R) {
+            
         }
 
         protected virtual void OnClick()
@@ -136,12 +144,9 @@ namespace cpts_451_yelp
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
-            // Recreate the UI using a DynamicLayout instead of TableLayout.
-            // Maybe use an if to see if there is a user selected. If so, add an "Add Tip" button and textbox.
-            // If not, don't. Just let them view tips, like now.
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
-            grid.Size = new Size(500, 500);
+            grid.Size = new Size(800, 400);
 
             layout.BeginVertical();
 
@@ -176,9 +181,11 @@ namespace cpts_451_yelp
             layout.BeginGroup("Tips", new Padding(10, 10, 10, 10));
             layout.BeginHorizontal();
             layout.AddAutoSized(grid);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(newTip);
             layout.AddAutoSized(addTip);
             layout.EndHorizontal();
-            layout.AddAutoSized(newTip);
             layout.EndGroup();
 
 
@@ -220,8 +227,8 @@ namespace cpts_451_yelp
             {
                 DataCell = new TextBoxCell("text"),
                 HeaderText = "Text",
-                Width = 200,
-                AutoSize = false,
+                //Width = 200,
+                AutoSize = true,
                 Resizable = false,
                 Sortable = true,
                 Editable = false

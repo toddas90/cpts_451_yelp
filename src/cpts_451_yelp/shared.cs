@@ -38,8 +38,8 @@ namespace cpts_451_yelp
             return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa; Timeout=5";
         }
 
-        // Executes the queries, straight out of the video
-        public void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf)
+        // Executes the queries, straight out of the video, true for read, false for write
+        public void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf, bool io)
         {
             using (var connection = new NpgsqlConnection(connectionInfo()))
             {
@@ -60,9 +60,16 @@ namespace cpts_451_yelp
                     try
                     {
                         // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
-                        var reader = cmd.ExecuteReader();
-                        while (reader.Read())
-                            myf(reader);
+                        if (io == true)
+                        {
+                            var reader = cmd.ExecuteReader();
+                            while (reader.Read())
+                                myf(reader);
+                        }
+                        else if (io == false)
+                        {
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                     catch (NpgsqlException ex)
                     {

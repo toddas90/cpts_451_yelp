@@ -157,7 +157,7 @@ namespace cpts_451_yelp
 
             string cmd = @"SELECT distinct businessstate FROM businessaddress
                 ORDER BY businessstate";
-            s.executeQuery(cmd, queryStateHelper);
+            s.executeQuery(cmd, queryStateHelper, true);
         }
 
         // This queries the db for the cities.
@@ -176,7 +176,7 @@ namespace cpts_451_yelp
                     WHERE businessstate = '" +
                     stateList.SelectedValue.ToString() +
                     "' ORDER BY businesscity";
-                s.executeQuery(cmd, queryCityHelper);
+                s.executeQuery(cmd, queryCityHelper, true);
             }
         }
 
@@ -195,7 +195,7 @@ namespace cpts_451_yelp
                     stateList.SelectedValue.ToString() + @"' AND 
                     businesscity = '" + cityList.SelectedValue.ToString() +
                     "' ORDER BY businesspostalcode";
-                s.executeQuery(cmd, queryZipHelper);
+                s.executeQuery(cmd, queryZipHelper, true);
             }
         }
 
@@ -216,7 +216,7 @@ namespace cpts_451_yelp
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
                     + "' ORDER BY categoryname";
-                s.executeQuery(cmd, queryCatHelper);
+                s.executeQuery(cmd, queryCatHelper, true);
             }
         }
 
@@ -240,7 +240,7 @@ namespace cpts_451_yelp
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
                     + @"' ORDER BY businessname";
-                s.executeQuery(cmd, queryBusinessHelper);
+                s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data;
             }
             else if (zipList.SelectedIndex > -1)
@@ -253,7 +253,7 @@ namespace cpts_451_yelp
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString() +
                     "' ORDER BY businessname";
-                s.executeQuery(cmd, queryBusinessHelper);
+                s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data;
             }
         }
@@ -404,12 +404,12 @@ namespace cpts_451_yelp
             grid.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("bid"),
-                Width = 0,
-                AutoSize = false,
+                // Width = 0,
+                AutoSize = true,
                 Resizable = false,
                 Sortable = true,
                 Editable = false,
-                Visible = false
+                Visible = true
             });
         }
 

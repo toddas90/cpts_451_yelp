@@ -14,7 +14,9 @@ namespace cpts_451_yelp
 
         // Bunch of gross variables.
         DynamicLayout layout = new DynamicLayout();
-        TextBox nameBox = new TextBox();
+        TextBox nameBox = new TextBox{
+            PlaceholderText = "Name"
+        };
 
         ListBox nameList = new ListBox
         {
@@ -46,7 +48,7 @@ namespace cpts_451_yelp
         {
             string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
                         INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() +"'";
-            s.executeQuery(cmd, queryNameHelper);
+            s.executeQuery(cmd, queryNameHelper, true);
         }
 
 
