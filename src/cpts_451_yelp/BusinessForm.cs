@@ -9,7 +9,11 @@ namespace cpts_451_yelp
     public partial class BusinessForm : Form
     {
         // Bunch of gross variables.
-        TableLayout layout = new TableLayout();
+        DynamicLayout layout = new DynamicLayout();
+        Button addTip = new Button
+        {
+                Text = "Add Tip"
+        };
         private string bid = "";
         private string bname = "";
         private string bstate = "";
@@ -21,6 +25,11 @@ namespace cpts_451_yelp
         private UserInfo user;
 
         SharedInfo s = new SharedInfo();
+        
+        TextBox newTip = new TextBox
+        {
+            PlaceholderText = "New Tip"
+        };
 
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
 
@@ -29,6 +38,8 @@ namespace cpts_451_yelp
             AllowMultipleSelection = true,
             AllowEmptySelection = true
         };
+
+        public event EventHandler<EventArgs> Click;
 
         // Main entry point for business window.
         public BusinessForm(string bid, UserInfo inUser) // Main Form
@@ -45,6 +56,8 @@ namespace cpts_451_yelp
             createUI(bid); // Puts everything where it belongs
             addColGrid();
             this.Content = layout; // Instantiates the layout
+
+            addTip.Click += new EventHandler<EventArgs>(addTipHelper);
         }
 
         // Query for loading the name, city, state, and zip into the business details window.
@@ -103,44 +116,73 @@ namespace cpts_451_yelp
             });
         }
 
+        private void addTipHelper(object sender, EventArgs e) 
+        {
+            if (user.UserID != null) {
+                // Insert text into database, newTip.Text.ToString();
+            }
+            else
+            {
+                MessageBox.Show("You must log in before you submit a tip!");
+            }
+        }
+
+        protected virtual void OnClick()
+        {
+            EventHandler<EventArgs> handler = Click;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
             // Recreate the UI using a DynamicLayout instead of TableLayout.
             // Maybe use an if to see if there is a user selected. If so, add an "Add Tip" button and textbox.
             // If not, don't. Just let them view tips, like now.
-            layout.Spacing = new Size(5, 5);
+            layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
             grid.Size = new Size(500, 500);
 
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "Business Name" },
-                new TextBox { Text = bname, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
+            layout.BeginVertical();
+
+
+            layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
+            layout.AddRow(
+                new Label { Text = "Business Name" }, 
+                new TextBox { Text = bname, ReadOnly = true}
+            );
+            layout.AddRow(
                 new Label { Text = "State" },
                 new TextBox { Text = bstate, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
+            );
+            layout.AddRow(
                 new Label { Text = "City" },
                 new TextBox { Text = bcity, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
+            );
+            layout.AddRow(
                 new Label { Text = "Zip" },
                 new TextBox { Text = bzip, ReadOnly = true }
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "# of Businesses in State" },
-                new Label { Text = statenum }
-            ));
-            layout.Rows.Add(new TableRow(
-                new Label { Text = "# of Businesses in City" },
-                new Label { Text = citynum }
-            ));
-            layout.Rows.Add(new TableRow(
-                TableLayout.AutoSized(grid)
-            ));
-            layout.Rows.Add(new TableRow { ScaleHeight = true });
+            );
+            layout.AddRow(
+                new Label { Text = "Businesses in State" },
+                new TextBox {Text = statenum, ReadOnly = true }
+            );
+            layout.AddRow(
+                new Label { Text = "Businesses in City" },
+                new TextBox {Text = citynum, ReadOnly = true }
+            );
+            layout.EndGroup();
+
+            layout.BeginGroup("Tips", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.AddAutoSized(grid);
+            layout.AddAutoSized(addTip);
+            layout.EndHorizontal();
+            layout.AddAutoSized(newTip);
+            layout.EndGroup();
+
+
+            layout.EndVertical();
         }
         private void addColGrid()
         {
