@@ -11,6 +11,8 @@ def insertNestedBusinessAttributes(id, attributes, parent, cursor):
         if type(attributes[key]) == dict:
             if not insertNestedBusinessAttribute(id, attributes[key], parent + ':' + key, cursor):
                 return False
+        elif type(attributes[key]) == str and (attributes[key] == 'False' or attributes[key] == 'no' or attributes[key] == 'none'):
+            continue
         else:
             try:
                 cursor.execute("INSERT INTO Attributes (businessID, attributeName, value)"
@@ -27,6 +29,8 @@ def insertBusinessAttributes(id, attributes, cursor):
         if type(attributes[key]) == dict:
             if not insertNestedBusinessAttributes(id, attributes[key], key, cursor):
                 return False
+        elif type(attributes[key]) == str and (attributes[key] == 'False' or attributes[key] == 'no' or attributes[key] == 'none'):
+            continue
         else:
             try:
                 cursor.execute("INSERT INTO Attributes (businessID, attributeName, value)"
@@ -256,7 +260,8 @@ if __name__ == "__main__":
     error = False
     
     try:
-        dbConnection = psycopg2.connect("dbname='test_yelp' user='postgres' host='192.168.0.250' password='mustafa'")   # change parameters as needed
+        dbConnection = psycopg2.connect("dbname='yelpdata' user='postgres' host='localhost' password=''")   # change parameters as needed
+
     except Exception as e:
         error = True
         print('fatal error occured', e)
