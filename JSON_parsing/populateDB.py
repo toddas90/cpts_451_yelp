@@ -11,6 +11,8 @@ def insertNestedBusinessAttributes(id, attributes, parent, cursor):
         if type(attributes[key]) == dict:
             if not insertNestedBusinessAttribute(id, attributes[key], parent + ':' + key, cursor):
                 return False
+        elif type(attributes[key]) == str and (attributes[key] == 'False' or attributes[key] == 'no' or attributes[key] == 'none'):
+            continue
         else:
             try:
                 cursor.execute("INSERT INTO Attributes (businessID, attributeName, value)"
@@ -27,7 +29,7 @@ def insertBusinessAttributes(id, attributes, cursor):
         if type(attributes[key]) == dict:
             if not insertNestedBusinessAttributes(id, attributes[key], key, cursor):
                 return False
-        else if type(attributes[key]) == str and attributes[key] == 'False':
+        elif type(attributes[key]) == str and (attributes[key] == 'False' or attributes[key] == 'no' or attributes[key] == 'none'):
             continue
         else:
             try:
