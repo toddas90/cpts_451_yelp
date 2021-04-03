@@ -257,6 +257,7 @@ if __name__ == "__main__":
     
     try:
         dbConnection = psycopg2.connect("dbname='yelpdata' user='postgres' host='localhost' password=''")   # change parameters as needed
+
     except Exception as e:
         error = True
         print('fatal error occured', e)
