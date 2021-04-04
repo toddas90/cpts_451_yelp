@@ -12,12 +12,32 @@ namespace cpts_451_yelp
         public event EventHandler<EventArgs> Click;
         public event EventHandler<EventArgs> SelectedValueChanged;
 
+        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+
+        GridView friendsGrid = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
         // Bunch of gross variables.
         DynamicLayout layout = new DynamicLayout();
-        TextBox nameBox = new TextBox{
+        TextBox nameBox = new TextBox
+        {
             PlaceholderText = "Name"
         };
 
+        TextBox usernameBox = new TextBox();
+        TextBox starsBox = new TextBox();
+        TextBox dateBox = new TextBox();
+        TextBox fansBox = new TextBox();
+        TextBox funnyBox = new TextBox();
+        TextBox coolBox = new TextBox();
+        TextBox usefulBox = new TextBox();
+        TextBox tipcountBox = new TextBox();
+        TextBox totallikesBox = new TextBox();
+        TextBox latitudeBox = new TextBox();
+        TextBox longitudeBox = new TextBox();
         ListBox nameList = new ListBox
         {
             Size = new Size(150, 100)
@@ -29,7 +49,7 @@ namespace cpts_451_yelp
         };
         SharedInfo s = new SharedInfo();
 
-        public UserInfo currentUser  = new UserInfo();
+        public UserInfo currentUser = new UserInfo();
 
         // Main entry point for business window.
         public userForm() // Main Form
@@ -48,20 +68,21 @@ namespace cpts_451_yelp
         {
             nameList.Items.Clear();
             string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
-                        INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() +"'";
+                        INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
             s.executeQuery(cmd, queryNameHelper, true);
         }
 
 
         public String nameSearch()
         {
-          return nameBox.Text.ToString();
+            return nameBox.Text.ToString();
         }
 
 
         public void setUser(object sender, EventArgs e)
         {
-            if(nameList.SelectedIndex > -1){
+            if (nameList.SelectedIndex > -1)
+            {
                 currentUser.UserID = nameList.SelectedValue.ToString();
                 currentUser.Username = nameBox.Text.ToString();
                 MessageBox.Show("Logged in as: " + currentUser.Username);
@@ -95,8 +116,7 @@ namespace cpts_451_yelp
             layout.BeginHorizontal();
 
             layout.BeginVertical();
-            layout.BeginGroup("Set User", new Padding(10, 10, 10, 10));
-
+            layout.BeginGroup("Set Current User", new Padding(10, 10, 10, 10));
             layout.BeginHorizontal();
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Search User Name" });
@@ -106,16 +126,43 @@ namespace cpts_451_yelp
             layout.EndHorizontal();
             layout.EndVertical();
             layout.EndHorizontal();
-
             layout.BeginHorizontal();
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "User IDs" });
             layout.AddAutoSized(nameList);
             layout.EndVertical();
             layout.EndHorizontal();
-
             layout.EndGroup();
             layout.EndVertical();
+
+            layout.BeginVertical();
+            layout.BeginGroup("User Information", new Padding(10, 10, 10, 10));
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Name: " });
+            layout.AddRow(usernameBox);
+            layout.AddAutoSized(new Label { Text = "Stars: " });
+            layout.AddRow(starsBox);
+            layout.AddAutoSized(new Label { Text = "Fans: " });
+            layout.AddRow(fansBox);
+            layout.AddAutoSized(new Label { Text = "Yelping Since: " });
+            layout.AddRow(dateBox);
+            layout.AddAutoSized(new Label { Text = "Funny: " });
+            layout.AddAutoSized(new Label { Text = "Cool: " });
+            layout.AddAutoSized(new Label { Text = "Useful: " });
+            layout.BeginHorizontal();
+            layout.AddRow(funnyBox);
+            layout.AddRow(coolBox);
+            layout.AddRow(usefulBox);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndGroup();
+            layout.EndVertical();
+
+            layout.BeginHorizontal();
+            layout.BeginGroup("Friends", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(friendsGrid);
+            layout.EndGroup();
+            layout.EndHorizontal();
 
             layout.EndHorizontal();
         }
