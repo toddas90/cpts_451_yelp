@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace cpts_451_yelp
 {
-    public class Business
+    public class Business // Business class for keeping data together
     {
         public string name { get; set; }
         public string state { get; set; }
@@ -19,7 +19,7 @@ namespace cpts_451_yelp
         public int checkins { get; set; }
     }
 
-    public class TipInfo
+    public class TipInfo // Keeps the tip info together
     {
         public DateTime date { get; set; }
         public string name { get; set; }
@@ -27,7 +27,7 @@ namespace cpts_451_yelp
         public string text { get; set; }
     }
 
-    public class UserInfo
+    public class UserInfo // Keeps user info together
     {
         public string Username { get; set; }
         public string UserID { get; set; }
@@ -36,7 +36,7 @@ namespace cpts_451_yelp
 
     }
 
-    public class SharedInfo
+    public class SharedInfo // Connection info, and common methods
     {
         private string connectionInfo()
         {

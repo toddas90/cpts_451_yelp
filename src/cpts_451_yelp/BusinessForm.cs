@@ -9,10 +9,10 @@ namespace cpts_451_yelp
     public partial class BusinessForm : Form
     {
         // Bunch of gross variables.
-        DynamicLayout layout = new DynamicLayout();
-        Button addTip = new Button
+        DynamicLayout layout = new DynamicLayout(); // Layout for the page
+        Button addTip = new Button // Button for adding a tip
         {
-                Text = "Add Tip"
+            Text = "Add Tip"
         };
         private string bid = "";
         private string bname = "";
@@ -27,11 +27,11 @@ namespace cpts_451_yelp
         private UserInfo user;
 
         SharedInfo s = new SharedInfo();
-        
+
         TextBox newTip = new TextBox
         {
             PlaceholderText = "New Tip",
-            Size = new Size (800,-1)
+            Size = new Size(800, -1)
         };
 
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
@@ -120,25 +120,25 @@ namespace cpts_451_yelp
             });
         }
 
-        private void addTipHelper(object sender, EventArgs e) 
+        private void addTipHelper(object sender, EventArgs e)
         {
             String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
             AND businessid = '" + this.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
-            s.executeQuery(check,tipExists,true);
-            if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0) 
+            s.executeQuery(check, tipExists, true);
+            if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0)
             {
 
                 string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
-                    VALUES ('" + user.UserID + "', '" + this.bid + "', '" + 
+                    VALUES ('" + user.UserID + "', '" + this.bid + "', '" +
                     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
-                    s.executeQuery(cmd, empty, false);
-                    loadBusinessTipsHelper();
+                s.executeQuery(cmd, empty, false);
+                loadBusinessTipsHelper();
             }
-            else if(newTip.Text.Length == 0)
+            else if (newTip.Text.Length == 0)
             {
                 MessageBox.Show("Cannot submit an empty tip!");
             }
-            else if(isDuplicate)
+            else if (isDuplicate)
             {
                 MessageBox.Show("That tip already exists!");
             }
@@ -148,8 +148,9 @@ namespace cpts_451_yelp
             }
         }
 
-        private void tipExists(NpgsqlDataReader R){
-            if(R.HasRows)
+        private void tipExists(NpgsqlDataReader R)
+        {
+            if (R.HasRows)
             {
                 isDuplicate = true;
             }
@@ -159,8 +160,9 @@ namespace cpts_451_yelp
             }
         }
 
-        private void empty(NpgsqlDataReader R) {
-            
+        private void empty(NpgsqlDataReader R)
+        {
+
         }
 
         protected virtual void OnClick()
@@ -181,8 +183,8 @@ namespace cpts_451_yelp
 
             layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
             layout.AddRow(
-                new Label { Text = "Business Name" }, 
-                new TextBox { Text = bname, ReadOnly = true}
+                new Label { Text = "Business Name" },
+                new TextBox { Text = bname, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "State" },
@@ -198,11 +200,11 @@ namespace cpts_451_yelp
             );
             layout.AddRow(
                 new Label { Text = "Businesses in State" },
-                new TextBox {Text = statenum, ReadOnly = true }
+                new TextBox { Text = statenum, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "Businesses in City" },
-                new TextBox {Text = citynum, ReadOnly = true }
+                new TextBox { Text = citynum, ReadOnly = true }
             );
             layout.EndGroup();
 
