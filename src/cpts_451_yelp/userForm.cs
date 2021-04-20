@@ -5,15 +5,19 @@ using Npgsql;
 
 namespace cpts_451_yelp
 {
-    // Class for the business details window.
+    // Class for the user details window.
     public partial class userForm : Form
     {
-
+        // Click event handler
         public event EventHandler<EventArgs> Click;
+
+        // Selection event handler for boxes
         public event EventHandler<EventArgs> SelectedValueChanged;
 
+        // Data store for the tips info
         DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
 
+        // Grid for friends of the user
         GridView friendsGrid = new GridView<TipInfo>
         {
             AllowMultipleSelection = true,
@@ -21,37 +25,37 @@ namespace cpts_451_yelp
         };
 
         // Bunch of gross variables.
-        DynamicLayout layout = new DynamicLayout();
-        TextBox nameBox = new TextBox
+        DynamicLayout layout = new DynamicLayout(); // Layout for the page
+        TextBox nameBox = new TextBox // For user to log-in
         {
             PlaceholderText = "Name"
         };
 
-        TextBox usernameBox = new TextBox();
-        TextBox starsBox = new TextBox();
-        TextBox dateBox = new TextBox();
-        TextBox fansBox = new TextBox();
-        TextBox funnyBox = new TextBox();
-        TextBox coolBox = new TextBox();
-        TextBox usefulBox = new TextBox();
-        TextBox tipcountBox = new TextBox();
-        TextBox totallikesBox = new TextBox();
-        TextBox latitudeBox = new TextBox();
-        TextBox longitudeBox = new TextBox();
-        ListBox nameList = new ListBox
+        TextBox usernameBox = new TextBox(); // name of user
+        TextBox starsBox = new TextBox(); // number of stars
+        TextBox dateBox = new TextBox(); // date joined
+        TextBox fansBox = new TextBox(); // number of fans
+        TextBox funnyBox = new TextBox(); // number of funny
+        TextBox coolBox = new TextBox(); // number of cool
+        TextBox usefulBox = new TextBox(); // number of useful
+        TextBox tipcountBox = new TextBox(); // number of tips
+        TextBox totallikesBox = new TextBox(); // number of likes
+        TextBox latitudeBox = new TextBox(); // latitude of user
+        TextBox longitudeBox = new TextBox(); // longitude of user
+        ListBox nameList = new ListBox // Box of searched names
         {
             Size = new Size(150, 100)
         };
 
-        Button search = new Button
+        Button search = new Button // button to search for name
         {
             Text = "Search"
         };
-        SharedInfo s = new SharedInfo();
+        SharedInfo s = new SharedInfo(); // Shared info
 
-        public UserInfo currentUser = new UserInfo();
+        public UserInfo currentUser = new UserInfo(); // To store user information
 
-        // Main entry point for business window.
+        // Main entry point for user window.
         public userForm() // Main Form
         {
             Title = "User Details"; // Title of Application
@@ -60,28 +64,33 @@ namespace cpts_451_yelp
             createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
 
+            // Events are attached to event handlers here
             search.Click += new EventHandler<EventArgs>(queryName);
             nameList.SelectedValueChanged += new EventHandler<EventArgs>(setUser);
         }
 
+        // Queries the userid based on the name entered
         public void queryName(object sender, EventArgs e)
         {
-            nameList.Items.Clear();
+            nameList.Items.Clear(); // Clears the box
+
+            // Query to select userid
             string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
                         INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
             s.executeQuery(cmd, queryNameHelper, true);
         }
 
-
+        // Converts the text to a string
         public String nameSearch()
         {
             return nameBox.Text.ToString();
         }
 
-
+        // Sets the user in userinfo depending on which
+        // userid was selected
         public void setUser(object sender, EventArgs e)
         {
-            if (nameList.SelectedIndex > -1)
+            if (nameList.SelectedIndex > -1) // Checks if one was selected
             {
                 currentUser.UserID = nameList.SelectedValue.ToString();
                 currentUser.Username = nameBox.Text.ToString();
@@ -90,17 +99,20 @@ namespace cpts_451_yelp
         }
 
 
+        // Sets the list of names
         public void queryNameHelper(NpgsqlDataReader R)
         {
             nameList.Items.Add(R.GetString(0));
         }
 
+        // Required for clicks
         protected virtual void OnClick()
         {
             EventHandler<EventArgs> handler = Click;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
+        // Required for box selection
         protected virtual void OnSelectedValueChanged()
         {
             EventHandler<EventArgs> handler = SelectedValueChanged;
