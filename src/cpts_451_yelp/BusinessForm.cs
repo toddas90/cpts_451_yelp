@@ -14,17 +14,14 @@ namespace cpts_451_yelp
         {
             Text = "Add Tip"
         };
-        private string bid = "";
-        private string bname = "";
-        private string bstate = "";
-        private string bcity = "";
-        private string bzip = "";
+
         private string statenum = "";
         private string citynum = "";
 
         private bool isDuplicate;
 
         private UserInfo user;
+        private Business bus;
 
         SharedInfo s = new SharedInfo();
 
@@ -45,56 +42,40 @@ namespace cpts_451_yelp
         public event EventHandler<EventArgs> Click;
 
         // Main entry point for business window.
-        public BusinessForm(string bid, UserInfo inUser) // Main Form
+        public BusinessForm(Business B, UserInfo inUser) // Main Form
         {
             Title = "Business Details"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
-            this.bid = String.Copy(bid);
+            // this.bid = String.Copy(bid);
+            this.bus = B;
             this.user = inUser;
 
-            loadBusinessDetails(); // Loads the business name, city, and state.
+            // loadBusinessDetails(); // Loads the business name, city, and state.
             loadBusinessNums(); // Loads # of businesses in city and state.
             loadBusinessTipsHelper();
 
-            createUI(bid); // Puts everything where it belongs
+            createUI(bus.bid); // Puts everything where it belongs
             addColGrid();
             this.Content = layout; // Instantiates the layout
 
             addTip.Click += new EventHandler<EventArgs>(addTipHelper);
         }
 
-        // Query for loading the name, city, state, and zip into the business details window.
-        private void loadBusinessDetails()
-        {
-            data.Clear();
-            string sqlStr = "SELECT businessname, businessstate, businesscity, businesspostalcode FROM businessaddress, business WHERE business.businessid = businessaddress.businessid AND businessaddress.businessid = '" + this.bid + "';";
-            s.executeQuery(sqlStr, loadBusinessDetailsHelper, true);
-        }
-
         // Queries for loading the number of businesses.
         private void loadBusinessNums()
         {
-            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + this.bid + "');";
+            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + bus.bid + "');";
             s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
-            string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + this.bid + "');";
+            string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + bus.bid + "');";
             s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
         }
 
         private void loadBusinessTipsHelper()
         {
             data.Clear();
-            string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + this.bid + "' ORDER BY dateWritten;";
+            string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
             s.executeQuery(sqlStr, loadBusinessTipsHelper, true);
             grid.DataStore = data;
-        }
-
-        // Helper for assigning business details.
-        private void loadBusinessDetailsHelper(NpgsqlDataReader R)
-        {
-            bname = R.GetString(0);
-            bstate = R.GetString(1);
-            bcity = R.GetString(2);
-            bzip = R.GetString(3);
         }
 
         // Helper for assigning state business numbers.
@@ -123,13 +104,13 @@ namespace cpts_451_yelp
         private void addTipHelper(object sender, EventArgs e)
         {
             String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
-            AND businessid = '" + this.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
+            AND businessid = '" + bus.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
             s.executeQuery(check, tipExists, true);
             if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0)
             {
 
                 string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
-                    VALUES ('" + user.UserID + "', '" + this.bid + "', '" +
+                    VALUES ('" + user.UserID + "', '" + bus.bid + "', '" +
                     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
                 s.executeQuery(cmd, empty, false);
                 loadBusinessTipsHelper();
@@ -184,19 +165,19 @@ namespace cpts_451_yelp
             layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
             layout.AddRow(
                 new Label { Text = "Business Name" },
-                new TextBox { Text = bname, ReadOnly = true }
+                new TextBox { Text = bus.name, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "State" },
-                new TextBox { Text = bstate, ReadOnly = true }
+                new TextBox { Text = bus.state, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "City" },
-                new TextBox { Text = bcity, ReadOnly = true }
+                new TextBox { Text = bus.city, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "Zip" },
-                new TextBox { Text = bzip, ReadOnly = true }
+                new TextBox { Text = bus.zip, ReadOnly = true }
             );
             layout.AddRow(
                 new Label { Text = "Businesses in State" },

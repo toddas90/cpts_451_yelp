@@ -148,7 +148,8 @@ namespace cpts_451_yelp
                 if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
                 {
                     BusinessForm bwindow = new BusinessForm(
-                        B.bid.ToString(),
+                        B,
+                        //B.bid.ToString(),
                         currentUser
                     ); // Creates the new business window
                     bwindow.Show(); // Displays the new window
