@@ -24,12 +24,9 @@ WHERE Business.businessID = Temp.businessID;
 UPDATE Users
 SET totalLikes = Temp.sumLikes
 FROM (
-        SELECT userID,
-            businessID,
-            SUM(likes) as sumLikes
+        SELECT userID, SUM(likes) as sumLikes
         FROM Tip
-        GROUP BY userID,
-            businessID
+        GROUP BY userID
     ) as Temp
 WHERE Users.userID = Temp.userID;
 -- update tipCount in Users 
