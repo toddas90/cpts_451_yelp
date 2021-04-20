@@ -1,0 +1,3 @@
+DROP TRIGGER IF EXISTS NewCheckIn on ChecksIn;
+DROP TRIGGER IF EXISTS NewTip on Tip;
+DROP TRIGGER IF EXISTS UpdateTip on Tip;

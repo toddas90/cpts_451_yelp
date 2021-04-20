@@ -29,6 +29,11 @@ AFTER INSERT ON Tip
 FOR EACH ROW 
 EXECUTE FUNCTION UpdateTipInfo();
 
+CREATE TRIGGER UpdateTip
+AFTER UPDATE ON Tip 
+FOR EACH ROW 
+EXECUTE FUNCTION UpdateTipInfo();
+
 -- Trigger for updating checkInCount in Business
 CREATE TRIGGER NewCheckIn
 AFTER INSERT ON ChecksIn 
