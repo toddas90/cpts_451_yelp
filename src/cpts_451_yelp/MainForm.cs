@@ -60,7 +60,8 @@ namespace cpts_451_yelp
         GridView grid = new GridView<Business>
         {
             AllowMultipleSelection = true,
-            AllowEmptySelection = true
+            AllowEmptySelection = true,
+            AllowColumnReordering = false
         };
 
         UserInfo currentUser = new UserInfo();
@@ -82,7 +83,7 @@ namespace cpts_451_yelp
         public MainForm()
         {
             Title = "Yelp App"; // Title of Application
-            MinimumSize = new Size(1280, 720); // Default resolution
+            MinimumSize = new Size(1600, 900); // Default resolution
 
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
@@ -226,10 +227,12 @@ namespace cpts_451_yelp
             if (selectedCats.Items.Count > 0)
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
-                    businesscity, businesspostalcode, business.businessid 
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, stars, tipcount, checkincount 
                     FROM businessaddress, business, categories, (SELECT 
-                    DISTINCT  businessID, COUNT(businessID) as count FROM 
-                    categories WHERE " + stringifyCategories(selectedCats.Items)
+                    DISTINCT  businessID, COUNT(businessID) 
+                    as count FROM categories WHERE " +
+                    stringifyCategories(selectedCats.Items)
                     + @" GROUP BY businessID) as num WHERE categories.businessid
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND categories.businessid = 
@@ -246,7 +249,8 @@ namespace cpts_451_yelp
             else if (zipList.SelectedIndex > -1)
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate, 
-                    businesscity, businesspostalcode, business.businessid FROM 
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, stars, tipcount, checkincount FROM 
                     businessaddress, business WHERE business.businessid = 
                     businessaddress.businessid AND businessstate = '" +
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
@@ -333,7 +337,12 @@ namespace cpts_451_yelp
                 state = R.GetString(1),
                 city = R.GetString(2),
                 zip = R.GetString(3),
-                bid = R.GetString(4)
+                bid = R.GetString(4),
+                addy = R.GetString(5),
+                // dist = R.GetDouble(6),
+                stars = R.GetDouble(6),
+                tips = R.GetInt32(7),
+                checkins = R.GetInt32(8)
             });
         }
 
@@ -373,10 +382,10 @@ namespace cpts_451_yelp
             });
             grid.Columns.Add(new GridColumn
             {
-                DataCell = new TextBoxCell("state"),
-                HeaderText = "State",
-                Width = 60,
-                AutoSize = false,
+                DataCell = new TextBoxCell("addy"),
+                HeaderText = "Address",
+                //Width = 60,
+                AutoSize = true,
                 Resizable = false,
                 Sortable = true,
                 Editable = false
@@ -385,38 +394,88 @@ namespace cpts_451_yelp
             {
                 DataCell = new TextBoxCell("city"),
                 HeaderText = "City",
-                Width = 120,
-                AutoSize = false,
-                Resizable = false,
-                Sortable = true,
-                Editable = false
-            });
-            grid.Columns.Add(new GridColumn
-            {
-                DataCell = new TextBoxCell("zip"),
-                HeaderText = "Zip Code",
-                Width = 80,
-                AutoSize = false,
-                Resizable = false,
-                Sortable = true,
-                Editable = false
-            });
-            grid.Columns.Add(new GridColumn
-            {
-                DataCell = new TextBoxCell("bid"),
-                // Width = 0,
+                //Width = 120,
                 AutoSize = true,
                 Resizable = false,
                 Sortable = true,
-                Editable = false,
-                Visible = false
+                Editable = false
             });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("state"),
+                HeaderText = "State",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("dist"),
+                HeaderText = "Distance",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("stars"),
+                HeaderText = "Stars",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("tips"),
+                HeaderText = "Tips",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            grid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("checkins"),
+                HeaderText = "Check-ins",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            // grid.Columns.Add(new GridColumn
+            // {
+            //     DataCell = new TextBoxCell("zip"),
+            //     HeaderText = "Zip Code",
+            //     Width = 80,
+            //     AutoSize = false,
+            //     Resizable = false,
+            //     Sortable = true,
+            //     Editable = false
+            // });
+            // grid.Columns.Add(new GridColumn
+            // {
+            //     DataCell = new TextBoxCell("bid"),
+            //     // Width = 0,
+            //     AutoSize = true,
+            //     Resizable = false,
+            //     Sortable = true,
+            //     Editable = false,
+            //     Visible = false
+            // });
         }
 
         public void createUI()
         {
             layout.Padding = new Padding(10, 0, 10, 10);
-            grid.Size = new Size(700, 400);
+            grid.Size = new Size(1000, 1000);
             layout.DefaultSpacing = new Size(5, 5);
 
             layout.BeginHorizontal();

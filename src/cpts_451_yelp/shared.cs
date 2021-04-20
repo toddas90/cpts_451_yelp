@@ -12,6 +12,11 @@ namespace cpts_451_yelp
         public string city { get; set; }
         public string zip { get; set; }
         public string bid { get; set; }
+        public string addy { get; set; }
+        public double dist { get; set; }
+        public double stars { get; set; }
+        public int tips { get; set; }
+        public int checkins { get; set; }
     }
 
     public class TipInfo

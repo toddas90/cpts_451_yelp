@@ -1,0 +1,51 @@
+User Page:
+    display user information:
+        name
+        average stars
+        date joined
+        fans
+        votes
+        tip count
+        tip likes
+        lat/long
+    Friends:
+        name
+        star rating
+        date joined
+    Latest Friend Tips
+
+Main Page:
+    Search:
+        Business name --DONE
+        address --DONE
+        distance from user
+        rating (stars) --DONE
+        number of Tips --DONE
+        number of check-ins --DONE
+    Refine search with categories:
+        categories --DONE
+        price range
+        accepts credit cards
+        takes reservations
+        wheelchair accessable
+        outdoor seating
+        good for kids
+        good for groups
+        delivery
+        take out
+        wifi
+        bike parking
+        meals
+    Sort:
+        name
+        stars
+        Tips
+        check-ins
+        nearest
+Business Page:
+        open/close time
+        category and attributes
+
+Rambling:
+try passing a full business to the business window for less queries.
+        
