@@ -29,6 +29,10 @@ namespace cpts_451_yelp
         //     Text = "User Info"
         // };
 
+        // Labels for number of businesses
+        Label stnum = new Label();
+        Label ctnum = new Label();
+
         // List of the states, pupulated vis sql
         DropDown stateList = new DropDown();
 
@@ -56,8 +60,38 @@ namespace cpts_451_yelp
             Size = new Size(150, 100)
         };
 
-        // Add category to selectedCats
-        Button add = new Button
+        ListBox selectedAtts = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox priceFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox attributeFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox selectedFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox mealFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        // Add selected categories to list
+        Button add_cat = new Button
+        {
+            Text = "Add"
+        };
+
+        Button add_att = new Button
         {
             Text = "Add"
         };
@@ -69,7 +103,12 @@ namespace cpts_451_yelp
         };
 
         // Remove category from selectedCats
-        Button remove = new Button
+        Button remove_cat = new Button
+        {
+            Text = "Remove"
+        };
+
+        Button remove_att = new Button
         {
             Text = "Remove"
         };
@@ -121,6 +160,7 @@ namespace cpts_451_yelp
             addColGrid(); // Creates the data grid
             this.Content = layout; // Instantiates the layout
             queryState(); // Put states in drop down
+            populateFilters(); // Adds the filters to the lists
 
             // These attach the event handlers to the specific functions.
             // ie when a value in the stateList is changes, it calls queryCity.
@@ -128,8 +168,10 @@ namespace cpts_451_yelp
             cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryZip);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryCat);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
-            add.Click += new EventHandler<EventArgs>(addSelected);
-            remove.Click += new EventHandler<EventArgs>(removeSelected);
+            add_cat.Click += new EventHandler<EventArgs>(addSelectedCat);
+            remove_cat.Click += new EventHandler<EventArgs>(removeSelectedCat);
+            add_att.Click += new EventHandler<EventArgs>(addSelectedAtt);
+            remove_att.Click += new EventHandler<EventArgs>(removeSelectedAtt);
             search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
             user.Click += new EventHandler<EventArgs>(userWindow);
@@ -182,6 +224,62 @@ namespace cpts_451_yelp
             }
         }
 
+        // Queries for loading the number of businesses.
+        private void loadBusinessNumsState()
+        {
+            // Gets number of businesses in the state
+            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = '" + stateList.SelectedValue.ToString() + "';";
+            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
+        }
+
+        private void loadBusinessNumsCity()
+        {
+            if (cityList.SelectedIndex > -1)
+            {
+                // Gets number of businesses in the city
+                string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = '" + cityList.SelectedValue.ToString() + "';";
+                s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
+            }
+        }
+
+        // Helper for assigning state business numbers.
+        private void loadBusinessNumsStateHelper(NpgsqlDataReader R)
+        {
+            stnum.Text = R.GetInt32(0).ToString();
+        }
+
+        // Helper for assigning city business numbers.
+        private void loadBusinessNumsCityHelper(NpgsqlDataReader R)
+        {
+            ctnum.Text = R.GetInt32(0).ToString();
+        }
+
+        public void populateFilters()
+        {
+            priceFilters.Items.Add("Level One");
+            priceFilters.Items.Add("Level Two");
+            priceFilters.Items.Add("Level Three");
+            priceFilters.Items.Add("Level Four");
+
+            attributeFilters.Items.Add("Accepts Credit Cards");
+            attributeFilters.Items.Add("Takes Reservations");
+            attributeFilters.Items.Add("Wheelchair Accessable");
+            attributeFilters.Items.Add("Outdoor Seating");
+            attributeFilters.Items.Add("Good for Kids");
+            attributeFilters.Items.Add("Good for Groups");
+            attributeFilters.Items.Add("Delivery");
+            attributeFilters.Items.Add("Takeout");
+            attributeFilters.Items.Add("Free Wifi");
+            attributeFilters.Items.Add("Bike Parking");
+
+            mealFilters.Items.Add("Breakfast");
+            mealFilters.Items.Add("Brunch");
+            mealFilters.Items.Add("Lunch");
+            mealFilters.Items.Add("Dinner");
+            mealFilters.Items.Add("Dessert");
+            mealFilters.Items.Add("Late Night");
+        }
+
         // This queries the db for the states.
         public void queryState()
         {
@@ -207,6 +305,9 @@ namespace cpts_451_yelp
             catList.Items.Clear();
             selectedCats.Items.Clear();
             data.Clear();
+            ctnum.Text = "0";
+
+            loadBusinessNumsState();
 
             if (stateList.SelectedIndex > -1) // Checks to see if a state has actually been selected
             {
@@ -226,6 +327,8 @@ namespace cpts_451_yelp
             catList.Items.Clear();
             selectedCats.Items.Clear();
             data.Clear();
+
+            loadBusinessNumsCity();
 
             if (cityList.SelectedIndex > -1) // Checks to see if a city has been selected
             {
@@ -318,7 +421,7 @@ namespace cpts_451_yelp
 
         // Happens when add is clicked.
         // Adds the selected object to the categories list.
-        public void addSelected(object sender, EventArgs e)
+        public void addSelectedCat(object sender, EventArgs e)
         {
             for (int i = 0; i < selectedCats.Items.Count; i++)
             {
@@ -338,12 +441,67 @@ namespace cpts_451_yelp
             catch (System.NullReferenceException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("Please select a category first!");
+                // MessageBox.Show("Please select a category first!");
+            }
+        }
+
+        // Happens when add is clicked.
+        // Adds the selected object to the categories list.
+        public void addSelectedAtt(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tries to add the selected category to the list.
+                // Fails if there is nothing selected.
+                if (priceFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == priceFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(priceFilters.SelectedValue.ToString());
+                    priceFilters.SelectedIndex = -1;
+                }
+                if (attributeFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == attributeFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(attributeFilters.SelectedValue.ToString());
+                    attributeFilters.SelectedIndex = -1;
+                }
+                if (mealFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == mealFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(mealFilters.SelectedValue.ToString());
+                    mealFilters.SelectedIndex = -1;
+                }
+            }
+            catch (System.NullReferenceException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                // MessageBox.Show("Please select an attribute first!");
             }
         }
 
         // Removes the selected item from the list.
-        public void removeSelected(object sender, EventArgs e)
+        public void removeSelectedCat(object sender, EventArgs e)
         {
             try
             {
@@ -354,7 +512,24 @@ namespace cpts_451_yelp
             catch (System.ArgumentOutOfRangeException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("Please select a category first!");
+                // MessageBox.Show("Please select a category first!");
+            }
+        }
+
+
+        // Removes the selected item from the list.
+        public void removeSelectedAtt(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tries to remove the selected item.
+                // fails if nothing is selected.
+                selectedAtts.Items.RemoveAt(selectedAtts.SelectedIndex);
+            }
+            catch (System.ArgumentOutOfRangeException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                // MessageBox.Show("Please select an attribute first!");
             }
         }
 
@@ -541,31 +716,13 @@ namespace cpts_451_yelp
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Zip Code" });
             layout.AddAutoSized(zipList);
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
-
-            layout.BeginGroup("Business Category", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Categories" });
-            layout.AddAutoSized(catList);
-            layout.BeginHorizontal();
-            layout.AddAutoSized(add);
-            layout.AddAutoSized(remove);
-            layout.EndHorizontal();
+            layout.AddAutoSized(new Label { Text = "Businesses in State" });
+            layout.AddAutoSized(stnum);
+            layout.AddAutoSized(new Label { Text = "Businesses in City" });
+            layout.AddAutoSized(ctnum);
             layout.EndVertical();
             layout.EndHorizontal();
 
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Selected" });
-            layout.AddAutoSized(selectedCats);
-            layout.BeginCentered();
-            layout.AddAutoSized(search);
-            layout.EndCentered();
-            layout.EndVertical();
-            layout.EndHorizontal();
             layout.EndGroup();
 
             layout.BeginHorizontal();
@@ -588,6 +745,65 @@ namespace cpts_451_yelp
             layout.EndGroup();
             layout.EndVertical();
 
+            layout.BeginGroup("Filters", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Price" });
+            layout.AddAutoSized(priceFilters);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Attributes" });
+            layout.AddAutoSized(attributeFilters);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Meal" });
+            layout.AddAutoSized(mealFilters);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add_att);
+            layout.AddAutoSized(remove_att);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected Attributes" });
+            layout.AddAutoSized(selectedAtts);
+            layout.BeginCentered();
+            layout.AddAutoSized(search);
+            layout.EndCentered();
+            layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
+
+            layout.BeginGroup("Categories", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Category" });
+            layout.AddAutoSized(catList);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add_cat);
+            layout.AddAutoSized(remove_cat);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected Categories" });
+            layout.AddAutoSized(selectedCats);
+            layout.BeginCentered();
+            layout.AddAutoSized(search);
+            layout.EndCentered();
+            layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
 
             layout.EndHorizontal();
         }

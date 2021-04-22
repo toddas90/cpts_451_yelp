@@ -20,10 +20,6 @@ namespace cpts_451_yelp
             Text = "Like 👍"
         };
 
-        // These hold the number of businesses in the state/city
-        private string statenum = "";
-        private string citynum = "";
-
         // Makes sure the tip isn't a duplicate
         private bool isDuplicate;
 
@@ -73,7 +69,6 @@ namespace cpts_451_yelp
             this.user = inUser;
 
             // loadBusinessDetails(); // Loads the business name, city, and state.
-            loadBusinessNums(); // Loads # of businesses in city and state.
             loadBusinessTipsHelper();
 
             createUI(bus.bid); // Puts everything where it belongs
@@ -85,18 +80,6 @@ namespace cpts_451_yelp
             addTip.Click += new EventHandler<EventArgs>(addTipHelper);
             // like button event
             addLike.Click += new EventHandler<EventArgs>(addLikeHelper);
-        }
-
-        // Queries for loading the number of businesses.
-        private void loadBusinessNums()
-        {
-            // Gets number of businesses in the state
-            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = (SELECT businessstate from businessaddress WHERE businessid = '" + bus.bid + "');";
-            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
-
-            // Gets number of businesses in the city
-            string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = (SELECT businesscity from businessaddress WHERE businessid = '" + bus.bid + "');";
-            s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
         }
 
         // Loads the tips into the grid
@@ -119,18 +102,6 @@ namespace cpts_451_yelp
                 s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
                 friend_grid.DataStore = friend_data;
             }
-        }
-
-        // Helper for assigning state business numbers.
-        private void loadBusinessNumsStateHelper(NpgsqlDataReader R)
-        {
-            statenum = R.GetInt32(0).ToString();
-        }
-
-        // Helper for assigning city business numbers.
-        private void loadBusinessNumsCityHelper(NpgsqlDataReader R)
-        {
-            citynum = R.GetInt32(0).ToString();
         }
 
         // Puts the tip info into a tip class to keep the info together
@@ -270,14 +241,6 @@ namespace cpts_451_yelp
             layout.AddRow(
                 new Label { Text = "Zip" },
                 new TextBox { Text = bus.zip, ReadOnly = true }
-            );
-            layout.AddRow(
-                new Label { Text = "Businesses in State" },
-                new TextBox { Text = statenum, ReadOnly = true }
-            );
-            layout.AddRow(
-                new Label { Text = "Businesses in City" },
-                new TextBox { Text = citynum, ReadOnly = true }
             );
             layout.EndGroup();
 
