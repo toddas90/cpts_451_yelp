@@ -167,11 +167,11 @@ namespace cpts_451_yelp
         {
             try
             {
-                userForm uwindow = new userForm(); // Creates a new user page
-                uwindow.Show(); // Displays the page
+                GraphForm gwindow = new GraphForm(); // Creates a new user page
+                gwindow.Show(); // Displays the page
 
                 // Sets the user in here to the one selected in the user page
-                currentUser = uwindow.currentUser;
+                //currentUser = uwindow.currentUser;
             }
             catch (System.InvalidOperationException ex)
             {
