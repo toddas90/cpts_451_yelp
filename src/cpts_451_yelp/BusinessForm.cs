@@ -37,10 +37,19 @@ namespace cpts_451_yelp
         };
 
         // data store for tips
-        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+        DataStoreCollection<TipInfo> general_data = new DataStoreCollection<TipInfo>();
+
+        // Data for friend tips
+        DataStoreCollection<TipInfo> friend_data = new DataStoreCollection<TipInfo>();
 
         // Grid to display tips
-        GridView grid = new GridView<TipInfo>
+        GridView general_grid = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
+        GridView friend_grid = new GridView<TipInfo>
         {
             AllowMultipleSelection = true,
             AllowEmptySelection = true
@@ -63,7 +72,8 @@ namespace cpts_451_yelp
             loadBusinessTipsHelper();
 
             createUI(bus.bid); // Puts everything where it belongs
-            addColGrid();
+            addColGrid(general_grid);
+            addColGrid(friend_grid);
             this.Content = layout; // Instantiates the layout
 
             // Add tip button event
@@ -85,11 +95,20 @@ namespace cpts_451_yelp
         // Loads the tips into the grid
         private void loadBusinessTipsHelper()
         {
-            data.Clear();
+            general_data.Clear();
+            friend_data.Clear();
             // Query for the tips
-            string sqlStr = "SELECT dateWritten, userName, likes, textWritten FROM Tip, Users WHERE Users.userID = Tip.userID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
-            s.executeQuery(sqlStr, loadBusinessTipsHelper, true);
-            grid.DataStore = data;
+            string sqlStr1 = @"SELECT dateWritten, userName, likes, textWritten FROM Tip, Users 
+                            WHERE Users.userID = Tip.userID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
+            s.executeQuery(sqlStr1, loadBusinessTipsHelper, true);
+            general_grid.DataStore = general_data;
+
+            // Query friend tips for the business
+            string sqlStr2 = @"SELECT dateWritten, userName, likes, textWritten 
+                                FROM Tip, Users, FriendsWith WHERE Users.userID = Tip.userID AND FriendsWith.UserID = '" + user.UserID + @"'
+                                AND FriendsWith.FriendID = Tip.UserID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
+            s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
+            friend_grid.DataStore = friend_data;
         }
 
         // Helper for assigning state business numbers.
@@ -107,7 +126,20 @@ namespace cpts_451_yelp
         // Puts the tip info into a tip class to keep the info together
         private void loadBusinessTipsHelper(NpgsqlDataReader R)
         {
-            data.Add(new TipInfo()
+            general_data.Add(new TipInfo()
+            {
+                date = (DateTime)R.GetTimeStamp(0),
+                name = R.GetString(1),
+                likes = R.GetInt32(2),
+                text = R.GetString(3)
+            });
+        }
+
+        // Hate duplicate code, but I couldn't figure out how to make it accept
+        // a data store using her reader method.
+        private void loadBusinessFriendTipsHelper(NpgsqlDataReader R)
+        {
+            friend_data.Add(new TipInfo()
             {
                 date = (DateTime)R.GetTimeStamp(0),
                 name = R.GetString(1),
@@ -179,7 +211,8 @@ namespace cpts_451_yelp
         {
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
-            grid.Size = new Size(800, 400);
+            general_grid.Size = new Size(800, 400);
+            friend_grid.Size = new Size(800, 100);
 
             layout.BeginVertical();
 
@@ -211,9 +244,15 @@ namespace cpts_451_yelp
             );
             layout.EndGroup();
 
+            layout.BeginGroup("Friend Tips", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.AddAutoSized(friend_grid);
+            layout.EndHorizontal();
+            layout.EndGroup();
+
             layout.BeginGroup("Tips", new Padding(10, 10, 10, 10));
             layout.BeginHorizontal();
-            layout.AddAutoSized(grid);
+            layout.AddAutoSized(general_grid);
             layout.EndHorizontal();
             layout.BeginHorizontal();
             layout.AddAutoSized(newTip);
@@ -226,9 +265,9 @@ namespace cpts_451_yelp
         }
 
         // Populates the grid with columns
-        private void addColGrid()
+        private void addColGrid(Grid T)
         {
-            grid.Columns.Add(new GridColumn
+            T.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("date"),
                 HeaderText = "Date",
@@ -238,7 +277,7 @@ namespace cpts_451_yelp
                 Sortable = true,
                 Editable = false
             });
-            grid.Columns.Add(new GridColumn
+            T.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("name"),
                 HeaderText = "Name",
@@ -248,7 +287,7 @@ namespace cpts_451_yelp
                 Sortable = true,
                 Editable = false
             });
-            grid.Columns.Add(new GridColumn
+            T.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("likes"),
                 HeaderText = "Likes",
@@ -258,7 +297,7 @@ namespace cpts_451_yelp
                 Sortable = true,
                 Editable = false
             });
-            grid.Columns.Add(new GridColumn
+            T.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("text"),
                 HeaderText = "Text",

@@ -64,7 +64,7 @@ namespace cpts_451_yelp
                     cmd.CommandText = sqlstr;
                     try
                     {
-                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
+                        Console.WriteLine("Executing Query: " + sqlstr); // For debugging
                         if (io == true)
                         {
                             var reader = cmd.ExecuteReader();
