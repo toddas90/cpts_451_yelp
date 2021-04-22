@@ -1,16 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\cpts_451_yelp\cpts_451_yelp.csproj" />
+    <ProjectReference Include="..\cpts_451_yelp\cpts_451_yelp.csproj"/>
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.10" />
+    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.10"/>
+    <PackageReference Include="OxyPlot.GtkSharp" Version="2015.1.1046-alpha"/>
   </ItemGroup>
-	
 </Project>

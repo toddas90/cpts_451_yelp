@@ -40,7 +40,7 @@ namespace cpts_451_yelp
     {
         private string connectionInfo()
         {
-            return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa; Timeout=5";
+            return "Host=localhost; Username=postgres; Database=yelpdata; Password=mustafa; Timeout=5";
         }
 
         // Executes the queries, straight out of the video, true for read, false for write
