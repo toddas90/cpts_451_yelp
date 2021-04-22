@@ -15,6 +15,11 @@ namespace cpts_451_yelp
             Text = "Add Tip"
         };
 
+        Button addLike = new Button // Button for adding a like
+        {
+            Text = "Like 👍"
+        };
+
         // These hold the number of businesses in the state/city
         private string statenum = "";
         private string citynum = "";
@@ -78,6 +83,8 @@ namespace cpts_451_yelp
 
             // Add tip button event
             addTip.Click += new EventHandler<EventArgs>(addTipHelper);
+            // like button event
+            addLike.Click += new EventHandler<EventArgs>(addLikeHelper);
         }
 
         // Queries for loading the number of businesses.
@@ -103,12 +110,15 @@ namespace cpts_451_yelp
             s.executeQuery(sqlStr1, loadBusinessTipsHelper, true);
             general_grid.DataStore = general_data;
 
-            // Query friend tips for the business
-            string sqlStr2 = @"SELECT dateWritten, userName, likes, textWritten 
+            if (user.UserID != "/0")
+            {
+                // Query friend tips for the business
+                string sqlStr2 = @"SELECT dateWritten, userName, likes, textWritten 
                                 FROM Tip, Users, FriendsWith WHERE Users.userID = Tip.userID AND FriendsWith.UserID = '" + user.UserID + @"'
                                 AND FriendsWith.FriendID = Tip.UserID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
-            s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
-            friend_grid.DataStore = friend_data;
+                s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
+                friend_grid.DataStore = friend_data;
+            }
         }
 
         // Helper for assigning state business numbers.
@@ -151,11 +161,11 @@ namespace cpts_451_yelp
         // Adds the tips to the business!
         private void addTipHelper(object sender, EventArgs e)
         {
-            // Query to see if the tip exists
+            // Query to see if the tip already exists
             String check = @"SELECT userID, businessID, textWritten FROM Tip WHERE userID = '" + user.UserID + @"' 
             AND businessid = '" + bus.bid + "' AND textWritten = '" + newTip.Text.ToString() + "';";
             s.executeQuery(check, tipExists, true);
-            if (user.UserID != null && !isDuplicate && newTip.Text.Length > 0) // Makes sure theres a real tip
+            if (!isDuplicate && newTip.Text.Length > 0 && user.UserID != "/0") // Makes sure theres a real tip
             {
                 // Query to insert the tip
                 string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
@@ -178,6 +188,33 @@ namespace cpts_451_yelp
             }
         }
 
+        // Adds a like to a tip
+        private void addLikeHelper(object sender, EventArgs e)
+        {
+            if (general_grid.SelectedItem == null) // Checks for null value
+            {
+                MessageBox.Show("You must select a tip to like!");
+                return;
+            }
+
+            TipInfo temp = general_grid.SelectedItem as TipInfo; // Puts the thing in a tip that I can access
+
+            if (temp.name != null && user.UserID != "/0") // If the tip has been selected and the user is logged in
+            {
+                Console.WriteLine("Like +1");
+                // // Query to insert the like
+                // string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
+                //     VALUES ('" + user.UserID + "', '" + bus.bid + "', '" +
+                //     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
+                // s.executeQuery(cmd, empty, false);
+                // loadBusinessTipsHelper();
+            }
+            else // User has to be logged in
+            {
+                MessageBox.Show("You must log in to like a tip!");
+            }
+        }
+
         // Checks to see if the tip exists
         private void tipExists(NpgsqlDataReader R)
         {
@@ -196,7 +233,7 @@ namespace cpts_451_yelp
         // So, there is an empty method lol.
         private void empty(NpgsqlDataReader R)
         {
-            // Maybe add an easter egg?
+            // Use as a placeholder in executeQuery for inserting
         }
 
         // Required by law to be here!!! (handles events)
@@ -253,6 +290,11 @@ namespace cpts_451_yelp
             layout.BeginGroup("Tips", new Padding(10, 10, 10, 10));
             layout.BeginHorizontal();
             layout.AddAutoSized(general_grid);
+
+            layout.BeginVertical();
+            layout.AddAutoSized(addLike);
+            layout.EndVertical();
+
             layout.EndHorizontal();
             layout.BeginHorizontal();
             layout.AddAutoSized(newTip);

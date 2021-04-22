@@ -115,6 +115,8 @@ namespace cpts_451_yelp
             Title = "Yelp App"; // Title of Application
             MinimumSize = new Size(1600, 900); // Default resolution
 
+            currentUser.UserID = "/0";
+
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
             this.Content = layout; // Instantiates the layout
@@ -402,7 +404,7 @@ namespace cpts_451_yelp
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
-        protected virtual void OnSelectedValueChangec()
+        protected virtual void OnSelectedValueChanged()
         {
             EventHandler<EventArgs> handler = SelectedValueChanged;
             if (null != Handler) handler(this, EventArgs.Empty);
