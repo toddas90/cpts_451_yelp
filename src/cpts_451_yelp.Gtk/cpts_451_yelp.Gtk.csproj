@@ -8,6 +8,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Gtk" Version="2.5.10"/>
-    <PackageReference Include="OxyPlot.GtkSharp" Version="2015.1.1046-alpha"/>
+    <PackageReference Include="Eto.OxyPlot.Gtk" Version="1.2.0-beta"/>
   </ItemGroup>
 </Project>
