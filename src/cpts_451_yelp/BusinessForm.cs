@@ -176,9 +176,8 @@ namespace cpts_451_yelp
             {
                 Console.WriteLine("Like +1");
                 // Query to insert the like
-                string cmd = @"UPDATE Tip (userid, businessID, dateWritten, likes)
-                    VALUES ('" + temp.uid + "', '" + bus.bid + "', '" +
-                    temp.date + "','"+ temp.likes + "') ;";
+                string cmd = @"UPDATE Tip SET likes = '" + (temp.likes + 1) + "' WHERE businessid = '" + bus.bid + "' AND userid = '" + temp.uid +
+                                "' AND datewritten = '" + temp.date.ToString("yyyy-MM-dd HH:mm:ss") + "';";
                 s.executeQuery(cmd, empty, false);
                 loadBusinessTipsHelper();
             }
