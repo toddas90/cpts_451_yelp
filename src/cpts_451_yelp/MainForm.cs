@@ -388,7 +388,7 @@ namespace cpts_451_yelp
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND attributes.businessid = 
                     businessaddress.businessid AND business.businessID = 
-                    num.businessid AND num.count = '" + selectedCats.Items.Count
+                    num.businessid AND num.count = '" + selectedAtts.Items.Count
                     + "' AND businessstate = '" +
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
@@ -454,7 +454,7 @@ namespace cpts_451_yelp
         {
             string ret = "";
             string firstitem = mapAttributes(lst[0].ToString());
-            if(firstitem.Length == 1)
+            if (firstitem.Length == 1)
             {
                 ret += "value = '" + firstitem + "' ";
             }
