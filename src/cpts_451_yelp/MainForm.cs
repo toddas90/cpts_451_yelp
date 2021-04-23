@@ -117,7 +117,7 @@ namespace cpts_451_yelp
         // Opens the user page, login and user info live here
         Button user = new Button
         {
-            Text = "User"
+            Text = "User Detail"
         };
 
         // Grid for displaying the businesses
@@ -852,6 +852,17 @@ namespace cpts_451_yelp
             layout.BeginHorizontal();
 
             layout.BeginVertical();
+
+            layout.BeginHorizontal();
+            layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(user);
+            layout.EndVertical();
+            layout.EndHorizontal();
+            layout.EndGroup();
+            layout.EndHorizontal();
+
             layout.BeginGroup("Location", new Padding(10, 10, 10, 10));
 
             layout.BeginHorizontal();
@@ -881,16 +892,6 @@ namespace cpts_451_yelp
 
             layout.EndGroup();
 
-            layout.BeginHorizontal();
-            layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(user);
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
-            layout.EndHorizontal();
-
             layout.EndVertical();
 
             layout.BeginVertical(new Padding(10, 0, 0, 0));
@@ -901,7 +902,32 @@ namespace cpts_451_yelp
             layout.EndGroup();
             layout.EndVertical();
 
+            layout.BeginVertical();
+
+            layout.BeginGroup("Categories", new Padding(10, 10, 10, 10));
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Category" });
+            layout.AddAutoSized(catList);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected Categories" });
+            layout.AddAutoSized(selectedCats);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add_cat);
+            layout.AddAutoSized(remove_cat);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.EndGroup();
+
             layout.BeginGroup("Filters", new Padding(10, 10, 10, 10));
+
             layout.BeginHorizontal();
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Price" });
@@ -931,35 +957,16 @@ namespace cpts_451_yelp
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Selected Attributes" });
             layout.AddAutoSized(selectedAtts);
-            layout.BeginCentered();
-            layout.AddAutoSized(search);
-            layout.EndCentered();
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
-
-            layout.BeginGroup("Categories", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Category" });
-            layout.AddAutoSized(catList);
-            layout.BeginHorizontal();
-            layout.AddAutoSized(add_cat);
-            layout.AddAutoSized(remove_cat);
-            layout.EndHorizontal();
             layout.EndVertical();
             layout.EndHorizontal();
 
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Selected Categories" });
-            layout.AddAutoSized(selectedCats);
+            layout.EndGroup();
+
             layout.BeginCentered();
             layout.AddAutoSized(search);
             layout.EndCentered();
+
             layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
 
             layout.EndHorizontal();
         }
