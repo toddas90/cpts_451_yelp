@@ -1,7 +1,6 @@
-using System;
-using Eto.OxyPlot;
 using Eto.Forms;
 using Eto.Drawing;
+using System.IO;
 
 namespace cpts_451_yelp
 {
@@ -44,16 +43,23 @@ namespace cpts_451_yelp
             model.Axes.Add(new OxyPlot.Axes.CategoryAxis());
             model.Series.Add(series);
 
-            // load the model into the user control
-            Plot p = new Plot();
-            p.Model = model;
-
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
 
+            var stream = new MemoryStream();
+
+            OxyPlot.PdfExporter.Export(model, stream, 400, 600);
+
+            var file = File.Create("test.pdf");
+
+            var PdfExporter = new OxyPlot.PdfExporter { Width = 600, Height = 400 };
+            PdfExporter.Export(model, file);
+
+            Bitmap b = new Bitmap(stream);
+
             layout.BeginHorizontal();
             layout.BeginVertical();
-            layout.Add(p);
+            layout.Add(b);
             layout.EndHorizontal();
             layout.EndVertical();
         }
