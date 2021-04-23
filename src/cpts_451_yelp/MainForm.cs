@@ -373,6 +373,7 @@ namespace cpts_451_yelp
 
         public void queryBusiness(object sender, EventArgs e)
         {
+            data.Clear(); // Clears the data
             if (selectedAtts.Items.Count > 0)
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
@@ -396,7 +397,6 @@ namespace cpts_451_yelp
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets the data in the grid
             }
-            data.Clear(); // Clears the data
             else if (selectedCats.Items.Count > 0) // Checks if there are selected categories
             {
                 // Query to run if categories have been selected
@@ -453,23 +453,26 @@ namespace cpts_451_yelp
         public string stringifyAttributes(ListItemCollection lst)
         {
             string ret = "";
-            // if(/*regular/meal attribute is selected*/)
-            // {
-            //     ret = "attributename ='" + mapAttributes(lst[0].ToString());
-            //     for (int i = 1; i < reg.Count; i++)
-            //     {
-            //         trimmednextitem = reg[i].ToString().Replace(" ","");
-            //         ret += " OR attributename = " + "'" + trimmednextitem + "'";
-            //     }
-            // }
-            // if (/*money attribute is selected*/)
-            // {
-
-            // }
-
-            for (int i = 0; i < lst.Count; i++)
+            string firstitem = mapAttributes(lst[0].ToString());
+            if(firstitem.Length == 1)
             {
-                MessageBox.Show(mapAttributes(lst[i].ToString()));
+                ret += "value = '" + firstitem + "' ";
+            }
+            else
+            {
+                ret += "attributename = '" + firstitem + "' ";
+            }
+            for (int i = 1; i < lst.Count; i++)
+            {
+                string nextitem = mapAttributes(lst[i].ToString());
+                if (nextitem.Length == 1)
+                {
+                    ret += "OR value = '" + nextitem + "' ";
+                }
+                else
+                {
+                    ret += "OR attributename = '" + nextitem + "' ";
+                }
             }
 
             return ret;
