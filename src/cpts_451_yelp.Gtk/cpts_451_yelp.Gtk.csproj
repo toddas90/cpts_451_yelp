@@ -7,8 +7,8 @@
     <ProjectReference Include="..\cpts_451_yelp\cpts_451_yelp.csproj"/>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Eto.Platform.Gtk" Version="2.5.10"/>
     <PackageReference Include="Eto.OxyPlot.Gtk" Version="1.2.0-beta"/>
     <PackageReference Include="OxyPlot.Core" Version="2.0.0"/>
+    <PackageReference Include="Eto.Platform.Gtk" Version="2.2.0"/>
   </ItemGroup>
 </Project>
