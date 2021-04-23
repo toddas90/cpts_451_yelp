@@ -375,10 +375,29 @@ namespace cpts_451_yelp
         {
             if (selectedAtts.Items.Count > 0)
             {
-                stringifyAttributes(selectedAtts.Items);
+                string cmd = @"SELECT DISTINCT businessname, businessstate,
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, stars, tipcount, checkincount 
+                    FROM businessaddress, business, attributes, 
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM attributes WHERE " +
+                    stringifyAttributes(selectedAtts.Items)
+                    + @" GROUP BY businessID) as num 
+                    WHERE attributes.businessid
+                    = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND attributes.businessid = 
+                    businessaddress.businessid AND business.businessID = 
+                    num.businessid AND num.count = '" + selectedCats.Items.Count
+                    + "' AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                    + @"' ORDER BY businessname";
+                s.executeQuery(cmd, queryBusinessHelper, true);
+                grid.DataStore = data; // Sets the data in the grid
             }
             data.Clear(); // Clears the data
-            if (selectedCats.Items.Count > 0) // Checks if there are selected categories
+            else if (selectedCats.Items.Count > 0) // Checks if there are selected categories
             {
                 // Query to run if categories have been selected
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
