@@ -21,6 +21,7 @@ namespace cpts_451_yelp
 
     public class TipInfo // Keeps the tip info together
     {
+        public string uid { get; set; }
         public DateTime date { get; set; }
         public string name { get; set; }
         public int likes { get; set; }
@@ -64,7 +65,7 @@ namespace cpts_451_yelp
                     cmd.CommandText = sqlstr;
                     try
                     {
-                        // Console.WriteLine("Executing Query: " + sqlstr); // For debugging
+                        Console.WriteLine("Executing Query: " + sqlstr); // For debugging
                         if (io == true)
                         {
                             var reader = cmd.ExecuteReader();

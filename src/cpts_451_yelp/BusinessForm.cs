@@ -88,7 +88,7 @@ namespace cpts_451_yelp
             general_data.Clear();
             friend_data.Clear();
             // Query for the tips
-            string sqlStr1 = @"SELECT dateWritten, userName, likes, textWritten FROM Tip, Users 
+            string sqlStr1 = @"SELECT Tip.userid, dateWritten, userName, likes, textWritten FROM Tip, Users 
                             WHERE Users.userID = Tip.userID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
             s.executeQuery(sqlStr1, loadBusinessTipsHelper, true);
             general_grid.DataStore = general_data;
@@ -96,7 +96,7 @@ namespace cpts_451_yelp
             if (user.UserID != "/0")
             {
                 // Query friend tips for the business
-                string sqlStr2 = @"SELECT dateWritten, userName, likes, textWritten 
+                string sqlStr2 = @"SELECT Tip.userid, dateWritten, userName, likes, textWritten 
                                 FROM Tip, Users, FriendsWith WHERE Users.userID = Tip.userID AND FriendsWith.UserID = '" + user.UserID + @"'
                                 AND FriendsWith.FriendID = Tip.UserID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
                 s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
@@ -109,10 +109,11 @@ namespace cpts_451_yelp
         {
             general_data.Add(new TipInfo()
             {
-                date = (DateTime)R.GetTimeStamp(0),
-                name = R.GetString(1),
-                likes = R.GetInt32(2),
-                text = R.GetString(3)
+                uid = R.GetString(0),
+                date = (DateTime)R.GetTimeStamp(1),
+                name = R.GetString(2),
+                likes = R.GetInt32(3),
+                text = R.GetString(4)
             });
         }
 
@@ -122,10 +123,11 @@ namespace cpts_451_yelp
         {
             friend_data.Add(new TipInfo()
             {
-                date = (DateTime)R.GetTimeStamp(0),
-                name = R.GetString(1),
-                likes = R.GetInt32(2),
-                text = R.GetString(3)
+                uid = R.GetString(0),
+                date = (DateTime)R.GetTimeStamp(1),
+                name = R.GetString(2),
+                likes = R.GetInt32(3),
+                text = R.GetString(4)
             });
         }
 
@@ -173,12 +175,12 @@ namespace cpts_451_yelp
             if (temp.name != null && user.UserID != "/0") // If the tip has been selected and the user is logged in
             {
                 Console.WriteLine("Like +1");
-                // // Query to insert the like
-                // string cmd = @"INSERT INTO Tip (userid, businessID, dateWritten, likes, textWritten)
-                //     VALUES ('" + user.UserID + "', '" + bus.bid + "', '" +
-                //     DateTime.Now + "', 0,'" + newTip.Text.ToString() + "') ;";
-                // s.executeQuery(cmd, empty, false);
-                // loadBusinessTipsHelper();
+                // Query to insert the like
+                string cmd = @"UPDATE Tip (userid, businessID, dateWritten, likes)
+                    VALUES ('" + temp.uid + "', '" + bus.bid + "', '" +
+                    temp.date + "','"+ temp.likes + "') ;";
+                s.executeQuery(cmd, empty, false);
+                loadBusinessTipsHelper();
             }
             else // User has to be logged in
             {
