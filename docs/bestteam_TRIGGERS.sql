@@ -28,13 +28,26 @@ BEGIN
     UPDATE Users
     SET totalLikes = totalLikes + 1
     WHERE Users.userID = NEW.userID;
-    UPDATE Tip
-    SET likes = likes + 1
-    WHERE Tip.businessID = NEW.businessID AND Tip.userID = NEW.userID AND Tip.dateWritten = NEW.dateWritten;
+    --UPDATE Tip
+    --SET likes = likes + 1
+    --WHERE Tip.businessID = NEW.businessID AND Tip.userID = NEW.userID AND Tip.dateWritten = NEW.dateWritten;
     RETURN NEW;
 
 END;
 $$ LANGUAGE plpgsql;
+
+-- CREATE OR REPLACE FUNCTION incTip(usid VARCHAR, buid VARCHAR, datew TIMESTAMP)
+-- RETURNS FLOAT AS $$
+-- BEGIN
+-- 	UPDATE Users
+--     SET totalLikes = totalLikes + 1
+--     WHERE Users.userID = usid.userID;
+--     UPDATE Tip
+--     SET likes = likes + 1
+--     WHERE Tip.businessID = buid.businessID AND Tip.userID = usid.userID AND Tip.dateWritten = datew.dateWritten;
+--     RETURN NEW;
+-- END;
+-- $$ LANGUAGE plpgsql;
 
 -- Trigger for updating tipCount in Business and Users, and totalLikes in Users
 CREATE TRIGGER NewTip
