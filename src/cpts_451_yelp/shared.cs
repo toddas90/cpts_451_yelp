@@ -37,6 +37,13 @@ namespace cpts_451_yelp
 
     }
 
+    // public class AttInfo
+    // {
+    //     public string displayname { get; set; }
+    //     public string attributename { get; set; }
+    //     public string value { get; set; }
+    // }
+
     public class SharedInfo // Connection info, and common methods
     {
         private string connectionInfo()

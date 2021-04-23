@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 using Npgsql;
@@ -127,6 +128,10 @@ namespace cpts_451_yelp
             AllowColumnReordering = false
         };
 
+        Dictionary<string,string> attMoneyPairs = new Dictionary<string, string>();
+        Dictionary<string,string> attRegPairs = new Dictionary<string, string>();
+        Dictionary<string,string> attMealPairs = new Dictionary<string, string>();
+
         // Info about the currently logged in user
         UserInfo currentUser = new UserInfo();
 
@@ -161,6 +166,7 @@ namespace cpts_451_yelp
             this.Content = layout; // Instantiates the layout
             queryState(); // Put states in drop down
             populateFilters(); // Adds the filters to the lists
+           
 
             // These attach the event handlers to the specific functions.
             // ie when a value in the stateList is changes, it calls queryCity.
@@ -223,6 +229,7 @@ namespace cpts_451_yelp
                 MessageBox.Show("Error: " + ex.Message.ToString());
             }
         }
+
 
         // Queries for loading the number of businesses.
         private void loadBusinessNumsState()
@@ -366,6 +373,10 @@ namespace cpts_451_yelp
 
         public void queryBusiness(object sender, EventArgs e)
         {
+            if(selectedAtts.Items.Count > -1)
+            {
+                stringifyAttributes(selectedAtts.Items);
+            }
             data.Clear(); // Clears the data
             if (selectedCats.Items.Count > 0) // Checks if there are selected categories
             {
@@ -417,6 +428,106 @@ namespace cpts_451_yelp
                 ret += " OR categoryname = " + "'" + lst[i].ToString() + "'";
             }
             return ret;
+        }
+
+        //turns the attributes into a string usable in the business query 
+        public string stringifyAttributes(ListItemCollection lst)
+        {
+            string ret = "";
+            // if(/*regular/meal attribute is selected*/)
+            // {
+            //     ret = "attributename ='" + mapAttributes(lst[0].ToString());
+            //     for (int i = 1; i < reg.Count; i++)
+            //     {
+            //         trimmednextitem = reg[i].ToString().Replace(" ","");
+            //         ret += " OR attributename = " + "'" + trimmednextitem + "'";
+            //     }
+            // }
+            // if (/*money attribute is selected*/)
+            // {
+
+            // }
+
+                for (int i = 0; i < lst.Count; i++)
+                {
+                    MessageBox.Show(mapAttributes(lst[i].ToString()));
+                }
+
+            return ret;
+        }
+
+        public string mapAttributes(string displayname){
+            displayname = displayname.Replace(" ","");
+
+            if (displayname.ToLower() == "acceptscreditcards")
+            {
+                return "BusinessAcceptsCreditCards";
+            }
+            else if (displayname.ToLower() == "takesreservations")
+            {
+                return "RestaurantsReservations";
+            }
+            else if (displayname.ToLower() == "wheelchairaccessible")
+            {
+                return "WheelchairAccessible";
+            }
+            else if (displayname.ToLower() == "outdoorseating")
+            {
+                return "OutdoorSeating";
+            }
+            else if (displayname.ToLower() == "goodforkids")
+            {
+                return "GoodForKids";
+            }
+            else if (displayname.ToLower() == "goodforgroups")
+            {
+                return "GoodForGroups";
+            }
+            else if (displayname.ToLower() == "delivery")
+            {
+                return "RestaurantsDelivery";
+            }
+            else if (displayname.ToLower() == "takeout")
+            {
+                return "RestaurantsTakeout";
+            }
+            else if (displayname.ToLower() == "freewifi")
+            {
+                return "WiFi";
+            }
+            else if (displayname.ToLower() == "bikeparking")
+            {
+                return "BikeParking";
+            }
+            else if (displayname.ToLower() == "breakfast")
+            {
+                return "GoodForMeal:breakfast";
+            }
+            else if (displayname.ToLower() == "brunch")
+            {
+                return "GoodForMeal:brunch";
+            }
+            else if (displayname.ToLower() == "lunch")
+            {
+                return "GoodForMeal:lunch";
+            }
+            else if (displayname.ToLower() == "dinner")
+            {
+                return "GoodForMeal:dinner";
+            }
+            else if (displayname.ToLower() == "dessert")
+            {
+                return "GoodForMeal:dessert";
+            }
+            else if (displayname.ToLower() == "latenight")
+            {
+                return "GoodForMeal:latenight";
+            }
+            else
+            {
+                return "";
+            }
+                 
         }
 
         // Happens when add is clicked.
