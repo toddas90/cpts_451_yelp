@@ -374,7 +374,37 @@ namespace cpts_451_yelp
         public void queryBusiness(object sender, EventArgs e)
         {
             data.Clear(); // Clears the data
-            if (selectedAtts.Items.Count > 0)
+            if (selectedAtts.Items.Count > 0 && selectedCats.Items.Count > 0)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate,
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, stars, tipcount, checkincount 
+                    FROM businessaddress, business, attributes, categories,
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM attributes WHERE " +
+                                    stringifyAttributes(selectedAtts.Items)
+                                    + @" GROUP BY businessID) as numAtts,
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM categories WHERE " +
+                                    stringifyCategories(selectedCats.Items)
+                                    + @" GROUP BY businessID) as numCats
+                    WHERE attributes.businessid
+                    = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND attributes.businessid = 
+                    businessaddress.businessid AND categories.businessid = 
+                    attributes.businessid AND business.businessID = 
+                    numAtts.businessid AND business.businessID = 
+                    numCats.businessid AND numCats.count = '" + selectedCats.Items.Count +
+                                    "' AND numAtts.count = '" + selectedAtts.Items.Count
+                                    + "' AND businessstate = '" +
+                                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                                    + @"' ORDER BY businessname";
+                s.executeQuery(cmd, queryBusinessHelper, true);
+                grid.DataStore = data; // Sets the data in the grid
+            }
+            else if (selectedAtts.Items.Count > 0)
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
                     businesscity, businesspostalcode, business.businessid, 
