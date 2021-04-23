@@ -128,9 +128,9 @@ namespace cpts_451_yelp
             AllowColumnReordering = false
         };
 
-        Dictionary<string,string> attMoneyPairs = new Dictionary<string, string>();
-        Dictionary<string,string> attRegPairs = new Dictionary<string, string>();
-        Dictionary<string,string> attMealPairs = new Dictionary<string, string>();
+        Dictionary<string, string> attMoneyPairs = new Dictionary<string, string>();
+        Dictionary<string, string> attRegPairs = new Dictionary<string, string>();
+        Dictionary<string, string> attMealPairs = new Dictionary<string, string>();
 
         // Info about the currently logged in user
         UserInfo currentUser = new UserInfo();
@@ -166,7 +166,7 @@ namespace cpts_451_yelp
             this.Content = layout; // Instantiates the layout
             queryState(); // Put states in drop down
             populateFilters(); // Adds the filters to the lists
-           
+
 
             // These attach the event handlers to the specific functions.
             // ie when a value in the stateList is changes, it calls queryCity.
@@ -263,10 +263,10 @@ namespace cpts_451_yelp
 
         public void populateFilters()
         {
-            priceFilters.Items.Add("Level One");
-            priceFilters.Items.Add("Level Two");
-            priceFilters.Items.Add("Level Three");
-            priceFilters.Items.Add("Level Four");
+            priceFilters.Items.Add("$");
+            priceFilters.Items.Add("$$");
+            priceFilters.Items.Add("$$$");
+            priceFilters.Items.Add("$$$$");
 
             attributeFilters.Items.Add("Accepts Credit Cards");
             attributeFilters.Items.Add("Takes Reservations");
@@ -373,7 +373,7 @@ namespace cpts_451_yelp
 
         public void queryBusiness(object sender, EventArgs e)
         {
-            if(selectedAtts.Items.Count > -1)
+            if (selectedAtts.Items.Count > 0)
             {
                 stringifyAttributes(selectedAtts.Items);
             }
@@ -448,16 +448,20 @@ namespace cpts_451_yelp
 
             // }
 
-                for (int i = 0; i < lst.Count; i++)
-                {
-                    MessageBox.Show(mapAttributes(lst[i].ToString()));
-                }
+            for (int i = 0; i < lst.Count; i++)
+            {
+                MessageBox.Show(mapAttributes(lst[i].ToString()));
+            }
 
             return ret;
         }
 
-        public string mapAttributes(string displayname){
-            displayname = displayname.Replace(" ","");
+        // Gross method to map names in list to the actual
+        // Attribute name in the db. We tried other things
+        // but they ended up not working right. Time crunch!
+        public string mapAttributes(string displayname)
+        {
+            displayname = displayname.Replace(" ", "");
 
             if (displayname.ToLower() == "acceptscreditcards")
             {
@@ -523,11 +527,27 @@ namespace cpts_451_yelp
             {
                 return "GoodForMeal:latenight";
             }
+            else if (displayname.ToLower() == "$")
+            {
+                return "1";
+            }
+            else if (displayname.ToLower() == "$$")
+            {
+                return "2";
+            }
+            else if (displayname.ToLower() == "$$$")
+            {
+                return "3";
+            }
+            else if (displayname.ToLower() == "$$$$")
+            {
+                return "4";
+            }
             else
             {
                 return "";
             }
-                 
+
         }
 
         // Happens when add is clicked.
@@ -548,6 +568,7 @@ namespace cpts_451_yelp
                 // Tries to add the selected category to the list.
                 // Fails if there is nothing selected.
                 selectedCats.Items.Add(catList.SelectedValue.ToString());
+                catList.SelectedIndex = -1;
             }
             catch (System.NullReferenceException ex)
             {
@@ -619,6 +640,7 @@ namespace cpts_451_yelp
                 // Tries to remove the selected item.
                 // fails if nothing is selected.
                 selectedCats.Items.RemoveAt(selectedCats.SelectedIndex);
+                selectedCats.SelectedIndex = -1;
             }
             catch (System.ArgumentOutOfRangeException ex)
             {
@@ -636,6 +658,7 @@ namespace cpts_451_yelp
                 // Tries to remove the selected item.
                 // fails if nothing is selected.
                 selectedAtts.Items.RemoveAt(selectedAtts.SelectedIndex);
+                selectedAtts.SelectedIndex = -1;
             }
             catch (System.ArgumentOutOfRangeException ex)
             {
