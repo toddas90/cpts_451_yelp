@@ -18,10 +18,10 @@ namespace cpts_451_yelp
 
         public void createUI()
         {
-            // generate some random Y data
+            // generic data for testing
             double[] data = {1.0, 2.0, 3.0, 4.0, 5.0};
 
-            // create a series of bars and populate them with data
+            // create the bar series
             var series = new OxyPlot.Series.ColumnSeries()
             {
                 Title = "Data",
@@ -30,12 +30,13 @@ namespace cpts_451_yelp
                 StrokeThickness = 1
             };
 
+            // add data to bar series
             for (int i = 0; i < 5; i++)
             {
                 series.Items.Add(new OxyPlot.Series.ColumnItem(data[i], i));
             }
 
-            // create a model and add the bars into it
+            // create a model and add the bar to it
             var model = new OxyPlot.PlotModel
             {
                 Title = "Bar Graph"
@@ -49,12 +50,14 @@ namespace cpts_451_yelp
             var pf = Eto.Platform.Detect;
 
             if (pf.IsWpf) {
-                
+
                 var pngStream = new MemoryStream();
 
+                // export the model to a png format
                 var pngExporter = new OxyPlot.Wpf.PngExporter { Width = 600, Height = 400, Background = OxyPlot.OxyColors.White };
                 pngExporter.Export(model, pngStream);
 
+                // create bitmap from png data so eto can display it
                 Bitmap b = new Bitmap(pngStream);
 
                 layout.BeginHorizontal();
