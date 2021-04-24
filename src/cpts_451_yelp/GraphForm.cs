@@ -51,21 +51,34 @@ namespace cpts_451_yelp
             const int plotWidth = 600;
             const int plotHeight = 400;
 
-            // export the model to a png format
-            OxyPlot.ImageSharp.PngExporter.Export(model, "temp.png", plotWidth, plotHeight);
+            Bitmap bmap;
 
-            // create bitmap from png data so eto can display it
-            Bitmap b = new Bitmap("temp.png");
+            var pf = Eto.Platform.Detect;
 
-            // remove the temporary file
-            if (File.Exists("temp.png"))
+            // convert the oxyplot model to a bitmap base on platform
+            if (pf.IsWpf)
             {
-                File.Delete("temp.png");
+                var pngStream = new MemoryStream();
+
+                var exporter = new OxyPlot.ImageSharp.PngExporter(plotWidth, plotHeight);
+                exporter.Export(model, pngStream);
+
+                bmap = new Bitmap(pngStream);
+            }
+            else {
+                OxyPlot.ImageSharp.PngExporter.Export(model, "temp.png", plotWidth, plotHeight);
+
+                bmap = new Bitmap("temp.png");
+
+                if (File.Exists("temp.png"))
+                {
+                    File.Delete("temp.png");
+                }
             }
 
             layout.BeginHorizontal();
             layout.BeginVertical();
-            layout.Add(b);
+            layout.Add(bmap);
             layout.EndHorizontal();
             layout.EndVertical();
         }
