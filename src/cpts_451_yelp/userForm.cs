@@ -59,12 +59,12 @@ namespace cpts_451_yelp
                 UserID = R.GetString(0),
                 Username = R.GetString(1), // name
                 likes = R.GetInt32(2), // total likes
-                avgStars = (double) R.GetDecimal(3), //average stars
+                avgStars = Math.Round(R.GetDouble(3), 2), //average stars
                 date = R.GetDateTime(4) // yelping since date
             });
         }
 
- private void addColGrid()
+        private void addColGrid()
         {
             friendsGrid.Columns.Add(new GridColumn
             {
@@ -112,6 +112,7 @@ namespace cpts_451_yelp
         {
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
+            friendsGrid.Size = new Size(500, 500);
 
             layout.BeginHorizontal();
 
