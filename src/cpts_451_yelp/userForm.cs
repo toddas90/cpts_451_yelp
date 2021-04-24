@@ -15,7 +15,7 @@ namespace cpts_451_yelp
         public event EventHandler<EventArgs> SelectedValueChanged;
 
         // Data store for the tips info
-        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+        DataStoreCollection<UserInfo> friendData = new DataStoreCollection<UserInfo>();
 
         // Grid for friends of the user
         GridView friendsGrid = new GridView<TipInfo>
@@ -67,6 +67,27 @@ namespace cpts_451_yelp
             string cmd = @"SELECT Users.userid, username, latitude, longitude FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
                         INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
             s.executeQuery(cmd, queryNameHelper, true);
+        }
+
+        public void queryFriends()
+        {
+            friendData.Clear();
+
+            string cmd = @"SELECT friendid, username, likes, averageStars, totalLikes, yelpingSince 
+                        FROM FriendsWith, Users WHERE FriendsWith.userID = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + "' ;";
+            s.executeQuery(cmd, queryFriendInfoHelper, true);
+        }
+
+        private void queryFriendInfoHelper(NpgsqlDataReader R)
+        {
+            friendData.Add(new UserInfo() // Made a business class to keep the info together
+            {
+                UserID = R.GetString(0),
+                Username = R.GetString(1), // name
+                likes = R.GetInt32(2), // total likes
+                avgStars = (double) R.GetDecimal(3), //average stars
+                date = R.GetDateTime(4) // yelping since date
+            });
         }
 
         // Converts the text to a string

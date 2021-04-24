@@ -28,12 +28,16 @@ namespace cpts_451_yelp
         public string text { get; set; }
     }
 
+
     public class UserInfo // Keeps user info together
     {
         public string Username { get; set; }
         public string UserID { get; set; }
         public double UserLat { get; set; }
         public double UserLong { get; set; }
+        public int likes { get; set; }
+        public double avgStars { get; set; }
+        public DateTime date { get; set; }
 
     }
 
