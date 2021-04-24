@@ -176,6 +176,8 @@ namespace cpts_451_yelp
         // Event for when buttons are clicked
         public event EventHandler<EventArgs> Click;
 
+        public event EventHandler<EventArgs> Closed;
+
 
         // Main Form where everything happens
         public MainForm()
@@ -263,6 +265,7 @@ namespace cpts_451_yelp
         public void loginWindow(object sender, EventArgs e)
         {
             Login uwindow = new Login(currentUser); // Creates a new user page
+            uwindow.Closed += new EventHandler<EventArgs>(setUserInfo);
             try
             {
                 uwindow.Show(); // Displays the page
@@ -273,17 +276,9 @@ namespace cpts_451_yelp
                 MessageBox.Show("Error: " + ex.Message.ToString());
             }
 
-            // Sets the user in here to the one selected in the user page
-            //currentUser = uwindow.currentUser;
             //queryUserInfo();
         }
 
-        public void queryUserInfo()
-        {
-            string cmd = @"SELECT averageStars, yelpingSince, tipCount, totalLikes, fans, funny, cool, useful 
-                        FROM Users, UserRating WHERE User.userID = '" + currentUser.UserID + "' AND UserRating.userID = '" + currentUser + "';";
-            s.executeQuery(cmd,userInfoHelper,true);
-        }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNumsState()
@@ -303,22 +298,6 @@ namespace cpts_451_yelp
             }
         }
 
-        private void userInfoHelper(NpgsqlDataReader R)
-        {
-            usernameBox.Text = currentUser.Username;
-            starsBox.Text = R.GetString(0);
-            dateBox.Text = R.GetString(1);
-            tipcountBox.Text = R.GetString(2);
-            totallikesBox.Text = R.GetString(3);
-            fansBox.Text = R.GetString(4);
-            funnyBox.Text = R.GetString(5);
-            coolBox.Text = R.GetString(6);
-            usefulBox.Text = R.GetString(7);
-            latitudeBox.SelectedText = currentUser.UserLat.ToString();
-            longitudeBox.SelectedText = currentUser.UserLong.ToString();
-
-        }
-
         // Helper for assigning state business numbers.
         private void loadBusinessNumsStateHelper(NpgsqlDataReader R)
         {
@@ -329,6 +308,20 @@ namespace cpts_451_yelp
         private void loadBusinessNumsCityHelper(NpgsqlDataReader R)
         {
             ctnum.Text = R.GetInt32(0).ToString();
+        }
+
+        public void setUserInfo(object sender, EventArgs e)
+        {
+            starsBox.Text = currentUser.avgStars.ToString();
+            dateBox.Text = currentUser.date.ToString();
+            tipcountBox.Text = currentUser.tipCount.ToString();
+            totallikesBox.Text = currentUser.likes.ToString();
+            fansBox.Text = currentUser.fans.ToString();
+            funnyBox.Text = currentUser.funny.ToString();
+            coolBox.Text = currentUser.cool.ToString();
+            usefulBox.Text = currentUser.useful.ToString();
+            latitudeBox.SelectedText = currentUser.UserLat.ToString();
+            longitudeBox.SelectedText = currentUser.UserLong.ToString();
         }
 
         public void populateFilters()
@@ -855,6 +848,12 @@ namespace cpts_451_yelp
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
+        protected virtual void OnClosed()
+        {
+            EventHandler<EventArgs> handler = Closed;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+
         // Adds the columns to the grid.
         private void addColGrid()
         {
@@ -983,14 +982,20 @@ namespace cpts_451_yelp
             layout.BeginHorizontal();
             layout.AddAutoSized(new Label { Text = "Funny:" });
             layout.AddAutoSized(funnyBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
             layout.AddAutoSized(new Label { Text = "Cool:" });
             layout.AddAutoSized(coolBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
             layout.AddAutoSized(new Label { Text = "Useful:" });
             layout.AddAutoSized(usefulBox);
             layout.EndHorizontal();
             layout.BeginHorizontal();
             layout.AddAutoSized(new Label { Text = "Number of Tips:" });
             layout.AddAutoSized(tipcountBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
             layout.AddAutoSized(new Label { Text = "Number of Likes:" });
             layout.AddAutoSized(totallikesBox);
             layout.EndHorizontal();

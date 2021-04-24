@@ -48,6 +48,7 @@ namespace cpts_451_yelp
             // Events are attached to event handlers here
             search.Click += new EventHandler<EventArgs>(queryName);
             nameList.SelectedValueChanged += new EventHandler<EventArgs>(setUser);
+            nameList.SelectedValueChanged += new EventHandler<EventArgs>(queryUserInfo);
         }
 
         // Queries the userid based on the name entered
@@ -56,11 +57,15 @@ namespace cpts_451_yelp
             nameList.Items.Clear(); // Clears the box
 
             // Query to select userid
-            string cmd = @"SELECT Users.userid, username, latitude, longitude FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
-                        INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
+            string cmd = @"SELECT Users.userid, username FROM Users WHERE username = '" + nameSearch() + "'";
             s.executeQuery(cmd, queryNameHelper, true);
         }
-
+        public void queryUserInfo(object sender, EventArgs e)
+        {
+            string cmd = @"SELECT averageStars, yelpingSince, tipCount, totalLikes, fans, funny, cool, useful, latitude, longitude  
+                        FROM Users, UserRating, UserLocation WHERE Users.userID = UserLocation.UserID AND Users.userID = '" + currentUser.UserID + "' AND UserRating.userID = '" + currentUser.UserID + "';";
+            s.executeQuery(cmd,userInfoHelper,true);
+        }
 
         // Converts the text to a string
         public String nameSearch()
@@ -80,6 +85,19 @@ namespace cpts_451_yelp
             }
         }
 
+        private void userInfoHelper(NpgsqlDataReader R)
+        {
+            currentUser.avgStars = Math.Round(R.GetDouble(0), 2);
+            currentUser.date = R.GetDateTime(1);
+            currentUser.tipCount = R.GetInt32(2);
+            currentUser.likes = R.GetInt32(3);
+            currentUser.fans = R.GetInt32(4);
+            currentUser.funny = R.GetInt32(5);
+            currentUser.cool = R.GetInt32(6);
+            currentUser.useful= R.GetInt32(7);
+            currentUser.UserLat = R.GetDouble(8);
+            currentUser.UserLong = R.GetDouble(9);
+        }
 
         // Sets the list of names
         public void queryNameHelper(NpgsqlDataReader R)

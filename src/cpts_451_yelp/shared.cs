@@ -38,6 +38,11 @@ namespace cpts_451_yelp
         public int likes { get; set; }
         public double avgStars { get; set; }
         public DateTime date { get; set; }
+        public int tipCount { get; set; }
+        public int fans { get; set; }
+        public int funny { get; set; }
+        public int cool { get; set; }
+        public int useful { get; set; }
 
     }
 
