@@ -205,6 +205,7 @@ namespace cpts_451_yelp
             search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
             user.Click += new EventHandler<EventArgs>(userWindow);
+            userlogin.Click += new EventHandler<EventArgs>(loginWindow);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -239,7 +240,29 @@ namespace cpts_451_yelp
         // Creates the user page. This is where the user login is located
         public void userWindow(object sender, EventArgs e)
         {
-            userForm uwindow = new userForm(); // Creates a new user page
+            if(currentUser.UserID != "/0")
+            {
+                userForm uwindow = new userForm(currentUser); // Creates a new user page
+                try
+                {
+                    uwindow.Show(); // Displays the page
+                }
+                catch (System.InvalidOperationException ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                    MessageBox.Show("Error: " + ex.Message.ToString());
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please log in to view user information!");
+            }
+
+        }
+
+        public void loginWindow(object sender, EventArgs e)
+        {
+            Login uwindow = new Login(currentUser); // Creates a new user page
             try
             {
                 uwindow.Show(); // Displays the page
@@ -251,7 +274,7 @@ namespace cpts_451_yelp
             }
 
             // Sets the user in here to the one selected in the user page
-            currentUser = uwindow.currentUser;
+            //currentUser = uwindow.currentUser;
             //queryUserInfo();
         }
 
