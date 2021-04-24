@@ -16,15 +16,15 @@ namespace cpts_451_yelp
             this.Content = layout;
         }
 
+        // creates the graph window
         public void createUI()
         {
             // generic data for testing
             double[] data = {1.0, 2.0, 3.0, 4.0, 5.0};
 
             // create the bar series
-            var series = new OxyPlot.Series.ColumnSeries()
+            var series = new OxyPlot.Series.BarSeries()
             {
-                Title = "Data",
                 StrokeColor = OxyPlot.OxyColors.Black,
                 FillColor = OxyPlot.OxyColors.Blue,
                 StrokeThickness = 1
@@ -33,13 +33,14 @@ namespace cpts_451_yelp
             // add data to bar series
             for (int i = 0; i < 5; i++)
             {
-                series.Items.Add(new OxyPlot.Series.ColumnItem(data[i], i));
+                series.Items.Add(new OxyPlot.Series.BarItem(data[i], i));
             }
 
             // create a model and add the bar to it
             var model = new OxyPlot.PlotModel
             {
-                Title = "Bar Graph"
+                Title = "Bar Graph",
+                Background = OxyPlot.OxyColors.White
             };
             model.Axes.Add(new OxyPlot.Axes.CategoryAxis());
             model.Series.Add(series);
@@ -47,25 +48,26 @@ namespace cpts_451_yelp
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
 
-            var pf = Eto.Platform.Detect;
+            const int plotWidth = 600;
+            const int plotHeight = 400;
 
-            if (pf.IsWpf) {
+            // export the model to a png format
+            OxyPlot.ImageSharp.PngExporter.Export(model, "temp.png", plotWidth, plotHeight);
 
-                var pngStream = new MemoryStream();
+            // create bitmap from png data so eto can display it
+            Bitmap b = new Bitmap("temp.png");
 
-                // export the model to a png format
-                var pngExporter = new OxyPlot.Wpf.PngExporter { Width = 600, Height = 400, Background = OxyPlot.OxyColors.White };
-                pngExporter.Export(model, pngStream);
-
-                // create bitmap from png data so eto can display it
-                Bitmap b = new Bitmap(pngStream);
-
-                layout.BeginHorizontal();
-                layout.BeginVertical();
-                layout.Add(b);
-                layout.EndHorizontal();
-                layout.EndVertical();
+            // remove the temporary file
+            if (File.Exists("temp.png"))
+            {
+                File.Delete("temp.png");
             }
+
+            layout.BeginHorizontal();
+            layout.BeginVertical();
+            layout.Add(b);
+            layout.EndHorizontal();
+            layout.EndVertical();
         }
 
     }

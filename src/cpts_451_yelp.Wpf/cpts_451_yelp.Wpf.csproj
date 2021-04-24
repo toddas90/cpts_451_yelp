@@ -8,6 +8,5 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Eto.Platform.Wpf" Version="2.5.10"/>
-    <PackageReference Include="OxyPlot.Wpf" Version="2.0.0-unstable0956"/>
   </ItemGroup>
 </Project>
