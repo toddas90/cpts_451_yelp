@@ -32,8 +32,8 @@ namespace cpts_451_yelp
     {
         public string Username { get; set; }
         public string UserID { get; set; }
-        // public double UserLat { get; set; }
-        // public double UserLong { get; set; }
+        public double UserLat { get; set; }
+        public double UserLong { get; set; }
 
     }
 

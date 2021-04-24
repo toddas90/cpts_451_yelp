@@ -86,6 +86,25 @@ namespace cpts_451_yelp
             Size = new Size(150, 100)
         };
 
+        //user stuffs
+        Label usernameBox = new Label(); // name of user
+        Label starsBox = new Label(); // number of stars
+        Label dateBox = new Label(); // date joined
+        Label fansBox = new Label(); // number of fans
+        Label funnyBox = new Label(); // number of funny
+        Label coolBox = new Label(); // number of cool
+        Label usefulBox = new Label(); // number of useful
+        Label tipcountBox = new Label(); // number of tips
+        Label totallikesBox = new Label(); // number of likes
+        TextBox latitudeBox = new TextBox
+        {
+            PlaceholderText = "Enter Latitude"
+        }; // latitude of user
+        TextBox longitudeBox = new TextBox
+        {
+            PlaceholderText = "Enter Longitude"
+        }; // longitude of user
+
         // Add selected categories to list
         Button add_cat = new Button
         {
@@ -118,6 +137,11 @@ namespace cpts_451_yelp
         Button user = new Button
         {
             Text = "User Detail"
+        };
+
+        Button userlogin = new Button
+        {
+            Text = "User Login"
         };
 
         // Grid for displaying the businesses
@@ -215,21 +239,28 @@ namespace cpts_451_yelp
         // Creates the user page. This is where the user login is located
         public void userWindow(object sender, EventArgs e)
         {
+            userForm uwindow = new userForm(); // Creates a new user page
             try
             {
-                userForm uwindow = new userForm(); // Creates a new user page
                 uwindow.Show(); // Displays the page
-
-                // Sets the user in here to the one selected in the user page
-                currentUser = uwindow.currentUser;
             }
             catch (System.InvalidOperationException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
                 MessageBox.Show("Error: " + ex.Message.ToString());
             }
+
+            // Sets the user in here to the one selected in the user page
+            currentUser = uwindow.currentUser;
+            //queryUserInfo();
         }
 
+        public void queryUserInfo()
+        {
+            string cmd = @"SELECT averageStars, yelpingSince, tipCount, totalLikes, fans, funny, cool, useful 
+                        FROM Users, UserRating WHERE User.userID = '" + currentUser.UserID + "' AND UserRating.userID = '" + currentUser + "';";
+            s.executeQuery(cmd,userInfoHelper,true);
+        }
 
         // Queries for loading the number of businesses.
         private void loadBusinessNumsState()
@@ -247,6 +278,22 @@ namespace cpts_451_yelp
                 string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = '" + cityList.SelectedValue.ToString() + "';";
                 s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
             }
+        }
+
+        private void userInfoHelper(NpgsqlDataReader R)
+        {
+            usernameBox.Text = currentUser.Username;
+            starsBox.Text = R.GetString(0);
+            dateBox.Text = R.GetString(1);
+            tipcountBox.Text = R.GetString(2);
+            totallikesBox.Text = R.GetString(3);
+            fansBox.Text = R.GetString(4);
+            funnyBox.Text = R.GetString(5);
+            coolBox.Text = R.GetString(6);
+            usefulBox.Text = R.GetString(7);
+            latitudeBox.SelectedText = currentUser.UserLat.ToString();
+            longitudeBox.SelectedText = currentUser.UserLong.ToString();
+
         }
 
         // Helper for assigning state business numbers.
@@ -885,11 +932,55 @@ namespace cpts_451_yelp
 
             layout.BeginHorizontal();
             layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
+
             layout.BeginHorizontal();
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(user);
             layout.EndVertical();
+            layout.AddAutoSized(userlogin);
             layout.EndHorizontal();
+
+            layout.BeginVertical();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "User Name:" });
+            layout.AddAutoSized(usernameBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Yelping Since:" });
+            layout.AddAutoSized(dateBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Stars:" });
+            layout.AddAutoSized(starsBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Number of Fans:" });
+            layout.AddAutoSized(fansBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Funny:" });
+            layout.AddAutoSized(funnyBox);
+            layout.AddAutoSized(new Label { Text = "Cool:" });
+            layout.AddAutoSized(coolBox);
+            layout.AddAutoSized(new Label { Text = "Useful:" });
+            layout.AddAutoSized(usefulBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Number of Tips:" });
+            layout.AddAutoSized(tipcountBox);
+            layout.AddAutoSized(new Label { Text = "Number of Likes:" });
+            layout.AddAutoSized(totallikesBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Latitude:" });
+            layout.AddAutoSized(latitudeBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Longitude:" });
+            layout.AddAutoSized(longitudeBox);
+            layout.EndHorizontal();
+            layout.EndVertical();
+
             layout.EndGroup();
             layout.EndHorizontal();
 
@@ -913,9 +1004,9 @@ namespace cpts_451_yelp
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Zip Code" });
             layout.AddAutoSized(zipList);
-            layout.AddAutoSized(new Label { Text = "Businesses in State" });
+            layout.AddAutoSized(new Label { Text = "Businesses in State:" });
             layout.AddAutoSized(stnum);
-            layout.AddAutoSized(new Label { Text = "Businesses in City" });
+            layout.AddAutoSized(new Label { Text = "Businesses in City:" });
             layout.AddAutoSized(ctnum);
             layout.EndVertical();
             layout.EndHorizontal();

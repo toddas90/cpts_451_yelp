@@ -31,17 +31,6 @@ namespace cpts_451_yelp
             PlaceholderText = "Name"
         };
 
-        TextBox usernameBox = new TextBox(); // name of user
-        TextBox starsBox = new TextBox(); // number of stars
-        TextBox dateBox = new TextBox(); // date joined
-        TextBox fansBox = new TextBox(); // number of fans
-        TextBox funnyBox = new TextBox(); // number of funny
-        TextBox coolBox = new TextBox(); // number of cool
-        TextBox usefulBox = new TextBox(); // number of useful
-        TextBox tipcountBox = new TextBox(); // number of tips
-        TextBox totallikesBox = new TextBox(); // number of likes
-        TextBox latitudeBox = new TextBox(); // latitude of user
-        TextBox longitudeBox = new TextBox(); // longitude of user
         ListBox nameList = new ListBox // Box of searched names
         {
             Size = new Size(150, 100)
@@ -144,29 +133,6 @@ namespace cpts_451_yelp
             layout.AddAutoSized(nameList);
             layout.EndVertical();
             layout.EndHorizontal();
-            layout.EndGroup();
-            layout.EndVertical();
-
-            layout.BeginVertical();
-            layout.BeginGroup("User Information", new Padding(10, 10, 10, 10));
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Name: " });
-            layout.AddRow(usernameBox);
-            layout.AddAutoSized(new Label { Text = "Stars: " });
-            layout.AddRow(starsBox);
-            layout.AddAutoSized(new Label { Text = "Fans: " });
-            layout.AddRow(fansBox);
-            layout.AddAutoSized(new Label { Text = "Yelping Since: " });
-            layout.AddRow(dateBox);
-            layout.AddAutoSized(new Label { Text = "Funny: " });
-            layout.AddAutoSized(new Label { Text = "Cool: " });
-            layout.AddAutoSized(new Label { Text = "Useful: " });
-            layout.BeginHorizontal();
-            layout.AddRow(funnyBox);
-            layout.AddRow(coolBox);
-            layout.AddRow(usefulBox);
-            layout.EndHorizontal();
-            layout.EndVertical();
             layout.EndGroup();
             layout.EndVertical();
 
