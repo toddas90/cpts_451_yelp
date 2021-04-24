@@ -20,7 +20,7 @@ namespace cpts_451_yelp
         public void createUI()
         {
             // generic data for testing
-            double[] data = {1.0, 2.0, 3.0, 4.0, 5.0};
+            int[] data = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200};
 
             // create the bar series
             var series = new OxyPlot.Series.BarSeries()
@@ -31,18 +31,36 @@ namespace cpts_451_yelp
             };
 
             // add data to bar series
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 12; i++)
             {
-                series.Items.Add(new OxyPlot.Series.BarItem(data[i], i));
+                series.Items.Add(new OxyPlot.Series.BarItem {Value = data[i]});
             }
 
             // create a model and add the bar to it
             var model = new OxyPlot.PlotModel
             {
-                Title = "Bar Graph",
+                Title = "Checkins Per Month",
                 Background = OxyPlot.OxyColors.White
             };
-            model.Axes.Add(new OxyPlot.Axes.CategoryAxis());
+            model.Axes.Add(new OxyPlot.Axes.CategoryAxis
+            {
+                Position = OxyPlot.Axes.AxisPosition.Left,
+                ItemsSource = new[]
+                {
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December"
+                }
+            });
             model.Series.Add(series);
 
             layout.DefaultSpacing = new Size(5, 5);
