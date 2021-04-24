@@ -20,6 +20,18 @@ namespace cpts_451_yelp
             Text = "Like 👍"
         };
 
+        Button checkIn = new Button //Button for checking into a business
+        {
+            Text = "Check In"
+        };
+
+        //stuffs for buisness details 
+        DayOfWeek wk = DateTime.Today.DayOfWeek;
+
+        Label businessname = new Label();
+        Label streetaddress = new Label();
+        Label openHours = new Label();
+
         // Makes sure the tip isn't a duplicate
         private bool isDuplicate;
 
@@ -70,16 +82,22 @@ namespace cpts_451_yelp
 
             // loadBusinessDetails(); // Loads the business name, city, and state.
             loadBusinessTipsHelper();
+            loadBusinessHours();
 
             createUI(bus.bid); // Puts everything where it belongs
             addColGrid(general_grid);
             addColGrid(friend_grid);
             this.Content = layout; // Instantiates the layout
 
+            businessname.Text = B.name;
+            streetaddress.Text = B.addy;
+
             // Add tip button event
             addTip.Click += new EventHandler<EventArgs>(addTipHelper);
             // like button event
             addLike.Click += new EventHandler<EventArgs>(addLikeHelper);
+            // check in button event 
+            checkIn.Click += new EventHandler<EventArgs>(addCheckInHelper);
         }
 
         // Loads the tips into the grid
@@ -101,6 +119,24 @@ namespace cpts_451_yelp
                                 AND FriendsWith.FriendID = Tip.UserID AND businessID = '" + bus.bid + "' ORDER BY dateWritten;";
                 s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
                 friend_grid.DataStore = friend_data;
+            }
+        }
+
+        private void loadBusinessHours()
+        {
+            string cmd = @"SELECT openTime, closeTime FROM BusinessHours WHERE businessID = '" + bus.bid + "' AND dayOfWeek = '" + wk + "';";
+            s.executeQuery(cmd,loadBusinessHoursHelper,true);
+        }
+        private void loadBusinessHoursHelper(NpgsqlDataReader R)
+        {
+            if (R.HasRows)
+            {
+                openHours.Text = R.GetTimeSpan(0).ToString() + " - " + R.GetTimeSpan(1).ToString();
+            }
+            else
+            {
+                //never enters else statement 
+                openHours.Text = "Closed";
             }
         }
 
@@ -187,6 +223,19 @@ namespace cpts_451_yelp
             }
         }
 
+        private void addCheckInHelper(object sender, EventArgs e)
+        {
+            if (user.UserID != "/0") // If the tip has been selected and the user is logged in
+            {
+                string cmd = @"INSERT INTO ChecksIn (businessid, checkindate) VALUES ('" + bus.bid + "', '" + DateTime.Now + "');";
+                s.executeQuery(cmd, empty, false);
+            }
+            else // User has to be logged in
+            {
+                MessageBox.Show("You must log in to check in!");
+            }
+        }
+
         // Checks to see if the tip exists
         private void tipExists(NpgsqlDataReader R)
         {
@@ -228,20 +277,16 @@ namespace cpts_451_yelp
 
             layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
             layout.AddRow(
-                new Label { Text = "Business Name" },
-                new TextBox { Text = bus.name, ReadOnly = true }
+                new Label { Text = "Business Name:" },
+                businessname
             );
             layout.AddRow(
-                new Label { Text = "State" },
-                new TextBox { Text = bus.state, ReadOnly = true }
+                new Label { Text = "Street Address:" },
+                streetaddress
             );
             layout.AddRow(
-                new Label { Text = "City" },
-                new TextBox { Text = bus.city, ReadOnly = true }
-            );
-            layout.AddRow(
-                new Label { Text = "Zip" },
-                new TextBox { Text = bus.zip, ReadOnly = true }
+                new Label { Text = "Today's Hours:" },
+                openHours
             );
             layout.EndGroup();
 
@@ -257,6 +302,7 @@ namespace cpts_451_yelp
 
             layout.BeginVertical();
             layout.AddAutoSized(addLike);
+            layout.AddAutoSized(checkIn);
             layout.EndVertical();
 
             layout.EndHorizontal();

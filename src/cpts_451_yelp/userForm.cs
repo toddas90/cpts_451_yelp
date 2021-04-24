@@ -64,7 +64,7 @@ namespace cpts_451_yelp
             nameList.Items.Clear(); // Clears the box
 
             // Query to select userid
-            string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
+            string cmd = @"SELECT Users.userid, username, latitude, longitude FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
                         INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
             s.executeQuery(cmd, queryNameHelper, true);
         }
