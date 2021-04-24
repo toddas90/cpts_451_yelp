@@ -143,6 +143,10 @@ namespace cpts_451_yelp
         {
             Text = "User Login"
         };
+        Button updateLocation = new Button
+        {
+            Text = "Update Location"
+        };
 
         // Grid for displaying the businesses
         GridView grid = new GridView<Business>
@@ -1007,6 +1011,7 @@ namespace cpts_451_yelp
             layout.AddAutoSized(new Label { Text = "Longitude:" });
             layout.AddAutoSized(longitudeBox);
             layout.EndHorizontal();
+            layout.AddAutoSized(updateLocation);
             layout.EndVertical();
 
             layout.EndGroup();
