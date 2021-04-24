@@ -46,22 +46,23 @@ namespace cpts_451_yelp
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
 
-            var stream = new MemoryStream();
+            var pf = Eto.Platform.Detect;
 
-            OxyPlot.PdfExporter.Export(model, stream, 400, 600);
+            if (pf.IsWpf) {
+                
+                var pngStream = new MemoryStream();
 
-            var file = File.Create("test.pdf");
+                var pngExporter = new OxyPlot.Wpf.PngExporter { Width = 600, Height = 400, Background = OxyPlot.OxyColors.White };
+                pngExporter.Export(model, pngStream);
 
-            var PdfExporter = new OxyPlot.PdfExporter { Width = 600, Height = 400 };
-            PdfExporter.Export(model, file);
+                Bitmap b = new Bitmap(pngStream);
 
-            Bitmap b = new Bitmap(stream);
-
-            layout.BeginHorizontal();
-            layout.BeginVertical();
-            layout.Add(b);
-            layout.EndHorizontal();
-            layout.EndVertical();
+                layout.BeginHorizontal();
+                layout.BeginVertical();
+                layout.Add(b);
+                layout.EndHorizontal();
+                layout.EndVertical();
+            }
         }
 
     }
