@@ -33,10 +33,12 @@ namespace cpts_451_yelp
             Title = "User Details"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
 
+            addColGrid();
             createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
 
             currentUser = inUser;
+            queryFriends();
 
         }
 
@@ -44,9 +46,10 @@ namespace cpts_451_yelp
         {
             friendData.Clear();
 
-            string cmd = @"SELECT friendid, username, likes, averageStars, totalLikes, yelpingSince 
-                        FROM FriendsWith, Users WHERE FriendsWith.userID = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + "' ;";
+            string cmd = @"SELECT friendid, username, totalLikes, averageStars, yelpingSince 
+                        FROM FriendsWith, Users WHERE FriendsWith.friendid = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + "' ;";
             s.executeQuery(cmd, queryFriendInfoHelper, true);
+            friendsGrid.DataStore = friendData;
         }
 
         private void queryFriendInfoHelper(NpgsqlDataReader R)
@@ -61,6 +64,49 @@ namespace cpts_451_yelp
             });
         }
 
+ private void addColGrid()
+        {
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("Username"),
+                HeaderText = "Name",
+                //Width = 300,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("likes"),
+                HeaderText = "Total Likes",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("avgStars"),
+                HeaderText = "Avg Stars",
+                //Width = 120,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Yelping Since",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+        }
         // Puts all of the stuff where it belongs.
         public void createUI()
         {
