@@ -125,7 +125,7 @@ namespace cpts_451_yelp
         private void loadBusinessHours()
         {
             string cmd = @"SELECT openTime, closeTime FROM BusinessHours WHERE businessID = '" + bus.bid + "' AND dayOfWeek = '" + wk + "';";
-            s.executeQuery(cmd,loadBusinessHoursHelper,true);
+            s.executeQuery(cmd, loadBusinessHoursHelper, true);
         }
         private void loadBusinessHoursHelper(NpgsqlDataReader R)
         {

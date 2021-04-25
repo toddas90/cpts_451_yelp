@@ -63,6 +63,7 @@ namespace cpts_451_yelp
             return "Host=192.168.0.250; Username=postgres; Database=test_yelp; Password=mustafa; Timeout=5";
         }
 
+
         // Executes the queries, straight out of the video, true for read, false for write
         public void executeQuery(string sqlstr, Action<NpgsqlDataReader> myf, bool io)
         {

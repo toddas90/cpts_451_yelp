@@ -23,7 +23,7 @@ namespace cpts_451_yelp
 
         ListBox nameList = new ListBox // Box of searched names
         {
-            Size = new Size(150, 100)
+            Size = new Size(205, 150)
         };
 
         Button search = new Button // button to search for name
@@ -38,7 +38,7 @@ namespace cpts_451_yelp
         public Login(UserInfo inUser) // Main Form
         {
             Title = "Login"; // Title of Application
-            MinimumSize = new Size(600, 400); // Default resolution
+            MinimumSize = new Size(200, 300); // Default resolution
 
             createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
@@ -64,7 +64,7 @@ namespace cpts_451_yelp
         {
             string cmd = @"SELECT averageStars, yelpingSince, tipCount, totalLikes, fans, funny, cool, useful, latitude, longitude  
                         FROM Users, UserRating, UserLocation WHERE Users.userID = UserLocation.UserID AND Users.userID = '" + currentUser.UserID + "' AND UserRating.userID = '" + currentUser.UserID + "';";
-            s.executeQuery(cmd,userInfoHelper,true);
+            s.executeQuery(cmd, userInfoHelper, true);
         }
 
         // Converts the text to a string
@@ -94,7 +94,7 @@ namespace cpts_451_yelp
             currentUser.fans = R.GetInt32(4);
             currentUser.funny = R.GetInt32(5);
             currentUser.cool = R.GetInt32(6);
-            currentUser.useful= R.GetInt32(7);
+            currentUser.useful = R.GetInt32(7);
             currentUser.UserLat = R.GetDouble(8);
             currentUser.UserLong = R.GetDouble(9);
         }

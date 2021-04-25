@@ -214,6 +214,8 @@ namespace cpts_451_yelp
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
             user.Click += new EventHandler<EventArgs>(userWindow);
             userlogin.Click += new EventHandler<EventArgs>(loginWindow);
+            updateLocation.Click += new EventHandler<EventArgs>(insertLocation);
+            updateLocation.Click += new EventHandler<EventArgs>(queryBusiness);
             // grid.ColumnHeaderClick += new EventHandler<GridColumnEventArgs>(sortColumn);
         }
 
@@ -286,6 +288,23 @@ namespace cpts_451_yelp
             //queryUserInfo();
         }
 
+        private void insertLocation(object sender, EventArgs e)
+        {
+            if (currentUser.UserID != "/0")
+            {
+                string sqlStr1 = "UPDATE userlocation SET longitude = '" + double.Parse(longitudeBox.Text) + "', latitude = '" + double.Parse(latitudeBox.Text) + "' WHERE userid = '" + currentUser.UserID + "';";
+                s.executeQuery(sqlStr1, empty, false);
+                currentUser.UserLat = double.Parse(latitudeBox.Text);
+                currentUser.UserLong = double.Parse(longitudeBox.Text);
+            }
+            else
+            {
+                Console.WriteLine("Please log in to update location!");
+                MessageBox.Show("Please log in to update location!");
+            }
+
+        }
+
         // Queries for loading the number of businesses.
         private void loadBusinessNumsState()
         {
@@ -318,6 +337,8 @@ namespace cpts_451_yelp
 
         public void setUserInfo(object sender, EventArgs e)
         {
+            longitudeBox.Text = "";
+            latitudeBox.Text = "";
             starsBox.Text = currentUser.avgStars.ToString();
             dateBox.Text = currentUser.date.ToString();
             tipcountBox.Text = currentUser.tipCount.ToString();
@@ -447,7 +468,7 @@ namespace cpts_451_yelp
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
                     FROM businessaddress, business, attributes, categories,
                     (SELECT DISTINCT  businessID, COUNT(businessID) 
                     as count  FROM attributes WHERE " +
@@ -456,8 +477,15 @@ namespace cpts_451_yelp
                     (SELECT DISTINCT  businessID, COUNT(businessID) 
                     as count  FROM categories WHERE " +
                                     stringifyCategories(selectedCats.Items)
-                                    + @" GROUP BY businessID) as numCats
-                    WHERE attributes.businessid
+                                    + @" GROUP BY businessID) as numCats,
+                    (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance 
+                    WHERE distance.businessid = business.businessid AND attributes.businessid
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND attributes.businessid = 
                     businessaddress.businessid AND categories.businessid = 
@@ -477,13 +505,19 @@ namespace cpts_451_yelp
             {
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
                     FROM businessaddress, business, attributes, 
                     (SELECT DISTINCT  businessID, COUNT(businessID) 
                     as count  FROM attributes WHERE " +
                     stringifyAttributes(selectedAtts.Items)
-                    + @" GROUP BY businessID) as num 
-                    WHERE attributes.businessid
+                    + @" GROUP BY businessID) as num, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance 
+                    WHERE distance.businessid = business.businessid AND attributes.businessid
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND attributes.businessid = 
                     businessaddress.businessid AND business.businessID = 
@@ -501,12 +535,18 @@ namespace cpts_451_yelp
                 // Query to run if categories have been selected
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
                     FROM businessaddress, business, categories, (SELECT 
                     DISTINCT  businessID, COUNT(businessID) 
                     as count FROM categories WHERE " +
                     stringifyCategories(selectedCats.Items)
-                    + @" GROUP BY businessID) as num WHERE categories.businessid
+                    + @" GROUP BY businessID) as num, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance WHERE distance.businessid = business.businessid AND categories.businessid
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND categories.businessid = 
                     businessaddress.businessid AND business.businessID = 
@@ -524,9 +564,16 @@ namespace cpts_451_yelp
                 // Query to populate businesses in the grid from a zip
                 string cmd = @"SELECT DISTINCT businessname, businessstate, 
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount FROM 
-                    businessaddress, business WHERE business.businessid = 
-                    businessaddress.businessid AND businessstate = '" +
+                    businessstreetaddress, getDistance ,stars, tipcount, checkincount FROM 
+                    businessaddress, business, businesslocation, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance WHERE distance.businessid = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND business.businessid = 
+                    businesslocation.businessid AND businessstate = '" +
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString() +
@@ -812,6 +859,11 @@ namespace cpts_451_yelp
             catList.Items.Add(R.GetString(0));
         }
 
+        private void empty(NpgsqlDataReader R)
+        {
+            // For inserting
+        }
+
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
@@ -826,10 +878,10 @@ namespace cpts_451_yelp
                 zip = R.GetString(3), // zip
                 bid = R.GetString(4), // business id
                 addy = R.GetString(5), // address
-                // dist = R.GetDouble(6), // distance from user
-                stars = R.GetDouble(6), // number of stars
-                tips = R.GetInt32(7), // number of tips
-                checkins = R.GetInt32(8) // number of check ins
+                dist = Math.Round(R.GetDouble(6), 2), // distance from user
+                stars = R.GetDouble(7), // number of stars
+                tips = R.GetInt32(8), // number of tips
+                checkins = R.GetInt32(9) // number of check ins
             });
         }
 
