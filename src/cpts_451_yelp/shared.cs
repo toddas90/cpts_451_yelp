@@ -26,6 +26,9 @@ namespace cpts_451_yelp
         public string name { get; set; }
         public int likes { get; set; }
         public string text { get; set; }
+        public string businessname { get; set; }
+        public string city { get; set; }
+
     }
 
 

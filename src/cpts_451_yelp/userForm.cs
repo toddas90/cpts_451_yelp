@@ -11,9 +11,16 @@ namespace cpts_451_yelp
 
         // Data store for the tips info
         DataStoreCollection<UserInfo> friendData = new DataStoreCollection<UserInfo>();
+        DataStoreCollection<TipInfo> latestTipsData = new DataStoreCollection<TipInfo>();
 
         // Grid for friends of the user
         GridView friendsGrid = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
+        GridView latestTips = new GridView<TipInfo>
         {
             AllowMultipleSelection = true,
             AllowEmptySelection = true
@@ -30,15 +37,17 @@ namespace cpts_451_yelp
         // Main entry point for user window.
         public userForm(UserInfo inUser) // Main Form
         {
-            Title = "User Details"; // Title of Application
+            Title = "Friends"; // Title of Application
             MinimumSize = new Size(600, 400); // Default resolution
 
-            addColGrid();
+            addColFriendGrid();
+            addColTipGrid();
             createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
 
             currentUser = inUser;
             queryFriends();
+            queryTips();
 
         }
 
@@ -50,6 +59,19 @@ namespace cpts_451_yelp
                         FROM FriendsWith, Users WHERE FriendsWith.friendid = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + "' ;";
             s.executeQuery(cmd, queryFriendInfoHelper, true);
             friendsGrid.DataStore = friendData;
+        }
+
+        public void queryTips()
+        {
+            latestTipsData.Clear();
+
+            string cmd = @"SELECT friendid, recentDate, username, textwritten, businessname, businesscity
+                        FROM FriendsWith, Users, BusinessAddress, Business, Tip, (SELECT userid, MAX(datewritten) as recentDate FROM Tip GROUP BY userid) as Recent 
+                        WHERE FriendsWith.friendid = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + @"'
+                        AND BusinessAddress.businessid = Business.businessid AND Tip.businessid = business.businessid AND Tip.datewritten = Recent.recentDate 
+                        AND Tip.userid = Recent.userid AND Recent.userid = Friendswith.friendid ORDER BY recentDate DESC;";
+            s.executeQuery(cmd, queryLatestTipsHelper, true);
+            latestTips.DataStore = latestTipsData;
         }
 
         private void queryFriendInfoHelper(NpgsqlDataReader R)
@@ -64,7 +86,73 @@ namespace cpts_451_yelp
             });
         }
 
-        private void addColGrid()
+        private void queryLatestTipsHelper(NpgsqlDataReader R)
+        {
+            latestTipsData.Add(new TipInfo() // Made a business class to keep the info together
+            {
+                uid = R.GetString(0), // user id
+                date = (DateTime)R.GetTimeStamp(1), // name
+                name = R.GetString(2), // tip leaver's name
+                text = R.GetString(3), // text in the tip
+                businessname = R.GetString(4), // name of business
+                city = R.GetString(5) //city
+            });
+        }
+        private void addColTipGrid()
+        {
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("name"),
+                HeaderText = "Name",
+                //Width = 300,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("businessname"),
+                HeaderText = "Business",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("city"),
+                HeaderText = "City",
+                //Width = 120,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("text"),
+                HeaderText = "Text",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Date",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+        }
+
+        private void addColFriendGrid()
         {
             friendsGrid.Columns.Add(new GridColumn
             {
@@ -113,12 +201,16 @@ namespace cpts_451_yelp
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
             friendsGrid.Size = new Size(500, 500);
+            latestTips.Size = new Size(500, 500);
 
             layout.BeginHorizontal();
 
             layout.BeginHorizontal();
             layout.BeginGroup("Friends", new Padding(10, 10, 10, 10));
             layout.AddAutoSized(friendsGrid);
+            layout.EndGroup();
+            layout.BeginGroup("Latest Tips", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(latestTips);
             layout.EndGroup();
             layout.EndHorizontal();
 

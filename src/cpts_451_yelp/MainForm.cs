@@ -136,12 +136,12 @@ namespace cpts_451_yelp
         // Opens the user page, login and user info live here
         Button user = new Button
         {
-            Text = "User Detail"
+            Text = "Friends"
         };
 
         Button userlogin = new Button
         {
-            Text = "User Login"
+            Text = "Login"
         };
         Button updateLocation = new Button
         {
@@ -182,6 +182,8 @@ namespace cpts_451_yelp
 
         public event EventHandler<EventArgs> Closed;
 
+        // public event EventHandler<GridColumnEventArgs> ColumnHeaderClick;
+
 
         // Main Form where everything happens
         public MainForm()
@@ -212,6 +214,7 @@ namespace cpts_451_yelp
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
             user.Click += new EventHandler<EventArgs>(userWindow);
             userlogin.Click += new EventHandler<EventArgs>(loginWindow);
+            // grid.ColumnHeaderClick += new EventHandler<GridColumnEventArgs>(sortColumn);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -246,7 +249,7 @@ namespace cpts_451_yelp
         // Creates the user page. This is where the user login is located
         public void userWindow(object sender, EventArgs e)
         {
-            if(currentUser.UserID != "/0")
+            if (currentUser.UserID != "/0")
             {
                 userForm uwindow = new userForm(currentUser); // Creates a new user page
                 try
@@ -282,7 +285,6 @@ namespace cpts_451_yelp
 
             //queryUserInfo();
         }
-
 
         // Queries for loading the number of businesses.
         private void loadBusinessNumsState()
@@ -857,6 +859,12 @@ namespace cpts_451_yelp
             EventHandler<EventArgs> handler = Closed;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
+
+        // protected virtual void OnColumnHeaderClick()
+        // {
+        //     EventHandler<GridColumnEventArgs> handler = ColumnHeaderClick;
+        //     if (null != Handler) handler(this, GridColumnEventArgs.Empty);
+        // }
 
         // Adds the columns to the grid.
         private void addColGrid()
