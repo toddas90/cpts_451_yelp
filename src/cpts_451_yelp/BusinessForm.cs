@@ -25,8 +25,14 @@ namespace cpts_451_yelp
             Text = "Check In"
         };
 
-        ListBox categories = new ListBox();
-        ListBox attributes = new ListBox();
+        ListBox categories = new ListBox
+        {
+            Size = new Size(200, 300)
+        };
+        ListBox attributes = new ListBox
+        {
+            Size = new Size(200, 300)
+        };
 
         //stuffs for buisness details 
         DayOfWeek wk = DateTime.Today.DayOfWeek;
@@ -316,31 +322,44 @@ namespace cpts_451_yelp
         // Puts all of the stuff where it belongs.
         public void createUI(string bid)
         {
-            layout.DefaultSpacing = new Size(5, 5);
+            layout.DefaultSpacing = new Size(15, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
             general_grid.Size = new Size(800, 400);
             friend_grid.Size = new Size(800, 100);
 
             layout.BeginVertical();
 
-            layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
-            layout.AddRow(
-                new Label { Text = "Business Name:" },
-                businessname
-            );
-            layout.AddRow(
-                new Label { Text = "Street Address:" },
-                streetaddress
-            );
-            layout.AddRow(
-                new Label { Text = "Today's Hours:" },
-                openHours
-            );
-            layout.AddRow(
-                categories,
-                attributes
-            );
+            layout.BeginGroup("Buisness Info", new Padding(10, 10, 200, 10));
+            layout.BeginHorizontal();
+
+            layout.BeginVertical();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Business Name:" });
+            layout.AddAutoSized(businessname);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Street Address:" });
+            layout.AddAutoSized(streetaddress);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Today's Hours:" });
+            layout.AddAutoSized(openHours);
+            layout.EndHorizontal();
+            layout.EndBeginVertical();
+
+            layout.BeginHorizontal();
+            layout.BeginGroup("Business Attributes", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(attributes);
             layout.EndGroup();
+            layout.BeginGroup("Business Categories", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(categories);
+            layout.EndGroup();
+            layout.EndHorizontal();
+
+            layout.EndHorizontal();
+            layout.EndGroup();
+
+
 
             layout.BeginGroup("Friend Tips", new Padding(10, 10, 10, 10));
             layout.BeginHorizontal();
