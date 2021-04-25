@@ -147,12 +147,8 @@ namespace cpts_451_yelp
             {
                 if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
                 {
-                    BusinessForm bwindow = new BusinessForm(
-                        B,
-                        //B.bid.ToString(),
-                        currentUser
-                    ); // Creates the new business window
-                    bwindow.Show(); // Displays the new window
+                    GraphForm gwindow = new GraphForm(B.bid);
+                    gwindow.Show();
                 }
             }
             catch (System.InvalidOperationException ex)
@@ -167,8 +163,8 @@ namespace cpts_451_yelp
         {
             try
             {
-                GraphForm gwindow = new GraphForm(); // Creates a new user page
-                gwindow.Show(); // Displays the page
+                userForm uwindow = new userForm(); // Creates a new user page
+                uwindow.Show(); // Displays the page
 
                 // Sets the user in here to the one selected in the user page
                 //currentUser = uwindow.currentUser;

@@ -1,27 +1,55 @@
 using Eto.Forms;
 using Eto.Drawing;
 using System.IO;
+using Npgsql;
 
 namespace cpts_451_yelp
 {
     // Class for the user details window.
     public partial class GraphForm : Form
     {
+
+        SharedInfo s = new SharedInfo();
         DynamicLayout layout = new DynamicLayout(); // Layout for the page
+
+        // number of checkins per month, indexed by month-1 (Jan = 0, Feb=1, Mar=2, etc.)
+        int[] checkinCounts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
         // Main entry point for graph window.
-        public GraphForm()
+        public GraphForm(string bid)
         {
             MinimumSize = new Size(600, 400);
+            this.loadCheckinData(bid);
             createUI();
             this.Content = layout;
+        }
+
+        // gets checkin data from the database
+        private void loadCheckinData(string bid)
+        {
+            bid = "--KQsXc-clkO7oHRqGzSzg"; // for testing
+            string cmd = @"SELECT EXTRACT(month from checkindate) as month, count(*) as count 
+                           FROM checksin 
+                           WHERE businessid = '" + bid + @"' 
+                           GROUP BY EXTRACT(MONTH from checkindate)";
+            s.executeQuery(cmd, checkinQueryResult, true);
+        }
+
+        private void checkinQueryResult(NpgsqlDataReader R)
+        {
+            // set checkin count values using query result
+            while (R.Read())
+            {
+                int month = R.GetInt32(0);
+                int count = R.GetInt32(1);
+
+                this.checkinCounts[month - 1] = count;
+            }
         }
 
         // creates the graph window
         public void createUI()
         {
-            // generic data for testing
-            int[] data = {100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200};
-
             // create the bar series
             var series = new OxyPlot.Series.BarSeries()
             {
@@ -33,7 +61,7 @@ namespace cpts_451_yelp
             // add data to bar series
             for (int i = 0; i < 12; i++)
             {
-                series.Items.Add(new OxyPlot.Series.BarItem {Value = data[i]});
+                series.Items.Add(new OxyPlot.Series.BarItem {Value = this.checkinCounts[i]});
             }
 
             // create a model and add the bar to it
@@ -42,6 +70,8 @@ namespace cpts_451_yelp
                 Title = "Checkins Per Month",
                 Background = OxyPlot.OxyColors.White
             };
+
+            // add axis label
             model.Axes.Add(new OxyPlot.Axes.CategoryAxis
             {
                 Position = OxyPlot.Axes.AxisPosition.Left,
