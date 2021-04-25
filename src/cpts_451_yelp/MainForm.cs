@@ -181,7 +181,7 @@ namespace cpts_451_yelp
         public event EventHandler<EventArgs> Click;
 
         public event EventHandler<EventArgs> Closed;
-        public event EventHandler<EventArgs> DropDownClosed;
+        public event EventHandler<EventArgs> SelectedIndexChanged;
 
         // Main Form where everything happens
         public MainForm()
@@ -215,7 +215,7 @@ namespace cpts_451_yelp
             userlogin.Click += new EventHandler<EventArgs>(loginWindow);
             updateLocation.Click += new EventHandler<EventArgs>(insertLocation);
             updateLocation.Click += new EventHandler<EventArgs>(queryBusiness);
-            SelectSort.DropDownClosed += new EventHandler<EventArgs>(queryBusiness);
+            SelectSort.SelectedIndexChanged += new EventHandler<EventArgs>(queryBusiness);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -942,9 +942,9 @@ namespace cpts_451_yelp
             EventHandler<EventArgs> handler = Closed;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
-        protected virtual void OnDropDownClosed()
+        protected virtual void OnSelectedIndexChanged()
         {
-            EventHandler<EventArgs> handler = DropDownClosed;
+            EventHandler<EventArgs> handler = SelectedIndexChanged;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
@@ -1140,11 +1140,13 @@ namespace cpts_451_yelp
             layout.AddAutoSized(stnum);
             layout.AddAutoSized(new Label { Text = "Businesses in City:" });
             layout.AddAutoSized(ctnum);
-            layout.AddAutoSized(new Label { Text = "Sort By:" });
-            layout.AddAutoSized(SelectSort);
             layout.EndVertical();
             layout.EndHorizontal();
 
+            layout.EndGroup();
+
+            layout.BeginGroup("Sort By", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(SelectSort);
             layout.EndGroup();
 
             layout.EndVertical();
