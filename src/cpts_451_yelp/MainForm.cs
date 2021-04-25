@@ -288,19 +288,26 @@ namespace cpts_451_yelp
 
         private void insertLocation(object sender, EventArgs e)
         {
-            if (currentUser.UserID != "/0")
+            try
             {
-                string sqlStr1 = "UPDATE userlocation SET longitude = '" + double.Parse(longitudeBox.Text) + "', latitude = '" + double.Parse(latitudeBox.Text) + "' WHERE userid = '" + currentUser.UserID + "';";
-                s.executeQuery(sqlStr1, empty, false);
-                currentUser.UserLat = double.Parse(latitudeBox.Text);
-                currentUser.UserLong = double.Parse(longitudeBox.Text);
+                if (currentUser.UserID != "/0")
+                {
+                    string sqlStr1 = "UPDATE userlocation SET longitude = '" + double.Parse(longitudeBox.Text) + "', latitude = '" + double.Parse(latitudeBox.Text) + "' WHERE userid = '" + currentUser.UserID + "';";
+                    s.executeQuery(sqlStr1, empty, false);
+                    currentUser.UserLat = double.Parse(latitudeBox.Text);
+                    currentUser.UserLong = double.Parse(longitudeBox.Text);
+                }
+                else
+                {
+                    Console.WriteLine("Please log in to update location!");
+                    MessageBox.Show("Please log in to update location!");
+                }
             }
-            else
+            catch (System.FormatException ex)
             {
-                Console.WriteLine("Please log in to update location!");
-                MessageBox.Show("Please log in to update location!");
+                Console.WriteLine(ex.Message.ToString());
+                MessageBox.Show("Error: " + ex.Message.ToString());
             }
-
         }
 
         // Queries for loading the number of businesses.
