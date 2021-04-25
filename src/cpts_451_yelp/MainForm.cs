@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 using Npgsql;
@@ -29,6 +30,10 @@ namespace cpts_451_yelp
         //     Text = "User Info"
         // };
 
+        // Labels for number of businesses
+        Label stnum = new Label();
+        Label ctnum = new Label();
+
         // List of the states, pupulated vis sql
         DropDown stateList = new DropDown();
 
@@ -56,8 +61,59 @@ namespace cpts_451_yelp
             Size = new Size(150, 100)
         };
 
-        // Add category to selectedCats
-        Button add = new Button
+        ListBox selectedAtts = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox priceFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox attributeFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox selectedFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        ListBox mealFilters = new ListBox
+        {
+            Size = new Size(150, 100)
+        };
+
+        //user stuffs
+        Label usernameBox = new Label(); // name of user
+        Label starsBox = new Label(); // number of stars
+        Label dateBox = new Label(); // date joined
+        Label fansBox = new Label(); // number of fans
+        Label funnyBox = new Label(); // number of funny
+        Label coolBox = new Label(); // number of cool
+        Label usefulBox = new Label(); // number of useful
+        Label tipcountBox = new Label(); // number of tips
+        Label totallikesBox = new Label(); // number of likes
+
+        DropDown SelectSort = new DropDown();
+        TextBox latitudeBox = new TextBox
+        {
+            PlaceholderText = "Enter Latitude"
+        }; // latitude of user
+        TextBox longitudeBox = new TextBox
+        {
+            PlaceholderText = "Enter Longitude"
+        }; // longitude of user
+
+        // Add selected categories to list
+        Button add_cat = new Button
+        {
+            Text = "Add"
+        };
+
+        Button add_att = new Button
         {
             Text = "Add"
         };
@@ -69,7 +125,12 @@ namespace cpts_451_yelp
         };
 
         // Remove category from selectedCats
-        Button remove = new Button
+        Button remove_cat = new Button
+        {
+            Text = "Remove"
+        };
+
+        Button remove_att = new Button
         {
             Text = "Remove"
         };
@@ -77,7 +138,16 @@ namespace cpts_451_yelp
         // Opens the user page, login and user info live here
         Button user = new Button
         {
-            Text = "User"
+            Text = "Friends"
+        };
+
+        Button userlogin = new Button
+        {
+            Text = "Login"
+        };
+        Button updateLocation = new Button
+        {
+            Text = "Update Location"
         };
 
         // Grid for displaying the businesses
@@ -99,6 +169,8 @@ namespace cpts_451_yelp
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
 
+        DataStoreCollection<String> SortStore = new DataStoreCollection<String>();
+
         // Event when something in a combobox is selected
         public event EventHandler<EventArgs> SelectedValueChanged;
 
@@ -108,6 +180,8 @@ namespace cpts_451_yelp
         // Event for when buttons are clicked
         public event EventHandler<EventArgs> Click;
 
+        public event EventHandler<EventArgs> Closed;
+        public event EventHandler<EventArgs> SelectedIndexChanged;
 
         // Main Form where everything happens
         public MainForm()
@@ -115,10 +189,15 @@ namespace cpts_451_yelp
             Title = "Yelp App"; // Title of Application
             MinimumSize = new Size(1600, 900); // Default resolution
 
+            currentUser.UserID = "/0";
+
             createUI(); // Puts everything where it belongs
             addColGrid(); // Creates the data grid
             this.Content = layout; // Instantiates the layout
             queryState(); // Put states in drop down
+            populateFilters(); // Adds the filters to the lists
+            SelectSort.SelectedIndex = 0;
+
 
             // These attach the event handlers to the specific functions.
             // ie when a value in the stateList is changes, it calls queryCity.
@@ -126,11 +205,17 @@ namespace cpts_451_yelp
             cityList.SelectedValueChanged += new EventHandler<EventArgs>(queryZip);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryCat);
             zipList.SelectedValueChanged += new EventHandler<EventArgs>(queryBusiness);
-            add.Click += new EventHandler<EventArgs>(addSelected);
-            remove.Click += new EventHandler<EventArgs>(removeSelected);
+            add_cat.Click += new EventHandler<EventArgs>(addSelectedCat);
+            remove_cat.Click += new EventHandler<EventArgs>(removeSelectedCat);
+            add_att.Click += new EventHandler<EventArgs>(addSelectedAtt);
+            remove_att.Click += new EventHandler<EventArgs>(removeSelectedAtt);
             search.Click += new EventHandler<EventArgs>(queryBusiness);
             grid.SelectionChanged += new EventHandler<EventArgs>(businessWindow);
             user.Click += new EventHandler<EventArgs>(userWindow);
+            userlogin.Click += new EventHandler<EventArgs>(loginWindow);
+            updateLocation.Click += new EventHandler<EventArgs>(insertLocation);
+            updateLocation.Click += new EventHandler<EventArgs>(queryBusiness);
+            SelectSort.SelectedIndexChanged += new EventHandler<EventArgs>(queryBusiness);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -165,19 +250,130 @@ namespace cpts_451_yelp
         // Creates the user page. This is where the user login is located
         public void userWindow(object sender, EventArgs e)
         {
+            if (currentUser.UserID != "/0")
+            {
+                userForm uwindow = new userForm(currentUser); // Creates a new user page
+                try
+                {
+                    uwindow.Show(); // Displays the page
+                }
+                catch (System.InvalidOperationException ex)
+                {
+                    Console.WriteLine(ex.Message.ToString());
+                    MessageBox.Show("Error: " + ex.Message.ToString());
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please log in to view user information!");
+            }
+
+        }
+
+        public void loginWindow(object sender, EventArgs e)
+        {
+            Login uwindow = new Login(currentUser); // Creates a new user page
+            uwindow.Closed += new EventHandler<EventArgs>(setUserInfo);
             try
             {
-                userForm uwindow = new userForm(); // Creates a new user page
                 uwindow.Show(); // Displays the page
-
-                // Sets the user in here to the one selected in the user page
-                currentUser = uwindow.currentUser;
             }
             catch (System.InvalidOperationException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
                 MessageBox.Show("Error: " + ex.Message.ToString());
             }
+
+            //queryUserInfo();
+        }
+
+        private void insertLocation(object sender, EventArgs e)
+        {
+            if (currentUser.UserID != "/0")
+            {
+                string sqlStr1 = "UPDATE userlocation SET longitude = '" + double.Parse(longitudeBox.Text) + "', latitude = '" + double.Parse(latitudeBox.Text) + "' WHERE userid = '" + currentUser.UserID + "';";
+                s.executeQuery(sqlStr1, empty, false);
+                currentUser.UserLat = double.Parse(latitudeBox.Text);
+                currentUser.UserLong = double.Parse(longitudeBox.Text);
+            }
+            else
+            {
+                Console.WriteLine("Please log in to update location!");
+                MessageBox.Show("Please log in to update location!");
+            }
+
+        }
+
+        // Queries for loading the number of businesses.
+        private void loadBusinessNumsState()
+        {
+            // Gets number of businesses in the state
+            string sqlStr1 = "SELECT count(*) from businessaddress WHERE businessstate = '" + stateList.SelectedValue.ToString() + "';";
+            s.executeQuery(sqlStr1, loadBusinessNumsStateHelper, true);
+        }
+
+        private void loadBusinessNumsCity()
+        {
+            if (cityList.SelectedIndex > -1)
+            {
+                // Gets number of businesses in the city
+                string sqlStr2 = "SELECT count(*) from businessaddress WHERE businesscity = '" + cityList.SelectedValue.ToString() + "';";
+                s.executeQuery(sqlStr2, loadBusinessNumsCityHelper, true);
+            }
+        }
+
+        // Helper for assigning state business numbers.
+        private void loadBusinessNumsStateHelper(NpgsqlDataReader R)
+        {
+            stnum.Text = R.GetInt32(0).ToString();
+        }
+
+        // Helper for assigning city business numbers.
+        private void loadBusinessNumsCityHelper(NpgsqlDataReader R)
+        {
+            ctnum.Text = R.GetInt32(0).ToString();
+        }
+
+        public void setUserInfo(object sender, EventArgs e)
+        {
+            longitudeBox.Text = "";
+            latitudeBox.Text = "";
+            starsBox.Text = currentUser.avgStars.ToString();
+            dateBox.Text = currentUser.date.ToString();
+            tipcountBox.Text = currentUser.tipCount.ToString();
+            totallikesBox.Text = currentUser.likes.ToString();
+            fansBox.Text = currentUser.fans.ToString();
+            funnyBox.Text = currentUser.funny.ToString();
+            coolBox.Text = currentUser.cool.ToString();
+            usefulBox.Text = currentUser.useful.ToString();
+            latitudeBox.SelectedText = currentUser.UserLat.ToString();
+            longitudeBox.SelectedText = currentUser.UserLong.ToString();
+        }
+
+        public void populateFilters()
+        {
+            priceFilters.Items.Add("$");
+            priceFilters.Items.Add("$$");
+            priceFilters.Items.Add("$$$");
+            priceFilters.Items.Add("$$$$");
+
+            attributeFilters.Items.Add("Accepts Credit Cards");
+            attributeFilters.Items.Add("Takes Reservations");
+            attributeFilters.Items.Add("Wheelchair Accessable");
+            attributeFilters.Items.Add("Outdoor Seating");
+            attributeFilters.Items.Add("Good for Kids");
+            attributeFilters.Items.Add("Good for Groups");
+            attributeFilters.Items.Add("Delivery");
+            attributeFilters.Items.Add("Takeout");
+            attributeFilters.Items.Add("Free Wifi");
+            attributeFilters.Items.Add("Bike Parking");
+
+            mealFilters.Items.Add("Breakfast");
+            mealFilters.Items.Add("Brunch");
+            mealFilters.Items.Add("Lunch");
+            mealFilters.Items.Add("Dinner");
+            mealFilters.Items.Add("Dessert");
+            mealFilters.Items.Add("Late Night");
         }
 
         // This queries the db for the states.
@@ -205,6 +401,9 @@ namespace cpts_451_yelp
             catList.Items.Clear();
             selectedCats.Items.Clear();
             data.Clear();
+            ctnum.Text = "0";
+
+            loadBusinessNumsState();
 
             if (stateList.SelectedIndex > -1) // Checks to see if a state has actually been selected
             {
@@ -224,6 +423,8 @@ namespace cpts_451_yelp
             catList.Items.Clear();
             selectedCats.Items.Clear();
             data.Clear();
+
+            loadBusinessNumsCity();
 
             if (cityList.SelectedIndex > -1) // Checks to see if a city has been selected
             {
@@ -262,17 +463,89 @@ namespace cpts_451_yelp
         public void queryBusiness(object sender, EventArgs e)
         {
             data.Clear(); // Clears the data
-            if (selectedCats.Items.Count > 0) // Checks if there are selected categories
+            if (selectedAtts.Items.Count > 0 && selectedCats.Items.Count > 0)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate,
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
+                    FROM businessaddress, business, attributes, categories,
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM attributes WHERE " +
+                                    stringifyAttributes(selectedAtts.Items)
+                                    + @" GROUP BY businessID) as numAtts,
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM categories WHERE " +
+                                    stringifyCategories(selectedCats.Items)
+                                    + @" GROUP BY businessID) as numCats,
+                    (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance 
+                    WHERE distance.businessid = business.businessid AND attributes.businessid
+                    = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND attributes.businessid = 
+                    businessaddress.businessid AND categories.businessid = 
+                    attributes.businessid AND business.businessID = 
+                    numAtts.businessid AND business.businessID = 
+                    numCats.businessid AND numCats.count = '" + selectedCats.Items.Count +
+                                    "' AND numAtts.count = '" + selectedAtts.Items.Count
+                                    + "' AND businessstate = '" +
+                                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                                    + @"' ORDER BY " + getSort() + ";";
+                s.executeQuery(cmd, queryBusinessHelper, true);
+                grid.DataStore = data; // Sets the data in the grid
+            }
+            else if (selectedAtts.Items.Count > 0)
+            {
+                string cmd = @"SELECT DISTINCT businessname, businessstate,
+                    businesscity, businesspostalcode, business.businessid, 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
+                    FROM businessaddress, business, attributes, 
+                    (SELECT DISTINCT  businessID, COUNT(businessID) 
+                    as count  FROM attributes WHERE " +
+                    stringifyAttributes(selectedAtts.Items)
+                    + @" GROUP BY businessID) as num, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance 
+                    WHERE distance.businessid = business.businessid AND attributes.businessid
+                    = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND attributes.businessid = 
+                    businessaddress.businessid AND business.businessID = 
+                    num.businessid AND num.count = '" + selectedAtts.Items.Count
+                    + "' AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString()
+                    + @"' ORDER BY " + getSort() + ";";
+                s.executeQuery(cmd, queryBusinessHelper, true);
+                grid.DataStore = data; // Sets the data in the grid
+            }
+            else if (selectedCats.Items.Count > 0) // Checks if there are selected categories
             {
                 // Query to run if categories have been selected
                 string cmd = @"SELECT DISTINCT businessname, businessstate,
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount 
+                    businessstreetaddress, getDistance, stars, tipcount, checkincount 
                     FROM businessaddress, business, categories, (SELECT 
                     DISTINCT  businessID, COUNT(businessID) 
                     as count FROM categories WHERE " +
                     stringifyCategories(selectedCats.Items)
-                    + @" GROUP BY businessID) as num WHERE categories.businessid
+                    + @" GROUP BY businessID) as num, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    @"') as distance WHERE distance.businessid = business.businessid AND categories.businessid
                     = business.businessid AND business.businessid = 
                     businessaddress.businessid AND categories.businessid = 
                     businessaddress.businessid AND business.businessID = 
@@ -281,7 +554,7 @@ namespace cpts_451_yelp
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
-                    + @"' ORDER BY businessname";
+                    + @"' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets the data in the grid
             }
@@ -290,15 +563,54 @@ namespace cpts_451_yelp
                 // Query to populate businesses in the grid from a zip
                 string cmd = @"SELECT DISTINCT businessname, businessstate, 
                     businesscity, businesspostalcode, business.businessid, 
-                    businessstreetaddress, stars, tipcount, checkincount FROM 
-                    businessaddress, business WHERE business.businessid = 
-                    businessaddress.businessid AND businessstate = '" +
+                    businessstreetaddress, getDistance ,stars, tipcount, checkincount FROM 
+                    businessaddress, business, businesslocation, (SELECT businesslocation.businessid,
+                    getDistance('" + currentUser.UserLat + "', '" + currentUser.UserLong + @"', latitude, longitude) 
+                    FROM businesslocation,businessaddress WHERE businesslocation.businessid = businessaddress.businessid AND businessstate = '" +
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString() +
-                    "' ORDER BY businessname";
+                    @"') as distance WHERE distance.businessid = business.businessid AND business.businessid = 
+                    businessaddress.businessid AND business.businessid = 
+                    businesslocation.businessid AND businessstate = '" +
+                    stateList.SelectedValue.ToString() + @"' AND businesscity = 
+                    '" + cityList.SelectedValue.ToString() + @"' AND 
+                    businesspostalcode = '" + zipList.SelectedValue.ToString() +
+                    "' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets data in grid
+            }
+        }
+
+        public string getSort()
+        {
+            if (SelectSort.SelectedIndex == 0)
+            {
+                return "businessname ASC";
+            }
+            else if (SelectSort.SelectedIndex == 1)
+            {
+                return "businessstreetaddress ASC";
+            }
+            else if (SelectSort.SelectedIndex == 2)
+            {
+                return "getdistance ASC";
+            }
+            else if (SelectSort.SelectedIndex == 3)
+            {
+                return "stars DESC";
+            }
+            else if (SelectSort.SelectedIndex == 4)
+            {
+                return "tipcount DESC";
+            }
+            else if (SelectSort.SelectedIndex == 5)
+            {
+                return "checkincount DESC";
+            }
+            else
+            {
+                return "businessname ASC";
             }
         }
 
@@ -314,9 +626,132 @@ namespace cpts_451_yelp
             return ret;
         }
 
+        //turns the attributes into a string usable in the business query 
+        public string stringifyAttributes(ListItemCollection lst)
+        {
+            string ret = "";
+            string firstitem = mapAttributes(lst[0].ToString());
+            if (firstitem.Length == 1)
+            {
+                ret += "value = '" + firstitem + "' ";
+            }
+            else
+            {
+                ret += "attributename = '" + firstitem + "' ";
+            }
+            for (int i = 1; i < lst.Count; i++)
+            {
+                string nextitem = mapAttributes(lst[i].ToString());
+                if (nextitem.Length == 1)
+                {
+                    ret += "OR value = '" + nextitem + "' ";
+                }
+                else
+                {
+                    ret += "OR attributename = '" + nextitem + "' ";
+                }
+            }
+
+            return ret;
+        }
+
+        // Gross method to map names in list to the actual
+        // Attribute name in the db. We tried other things
+        // but they ended up not working right. Time crunch!
+        public string mapAttributes(string displayname)
+        {
+            displayname = displayname.Replace(" ", "");
+
+            if (displayname.ToLower() == "acceptscreditcards")
+            {
+                return "BusinessAcceptsCreditCards";
+            }
+            else if (displayname.ToLower() == "takesreservations")
+            {
+                return "RestaurantsReservations";
+            }
+            else if (displayname.ToLower() == "wheelchairaccessible")
+            {
+                return "WheelchairAccessible";
+            }
+            else if (displayname.ToLower() == "outdoorseating")
+            {
+                return "OutdoorSeating";
+            }
+            else if (displayname.ToLower() == "goodforkids")
+            {
+                return "GoodForKids";
+            }
+            else if (displayname.ToLower() == "goodforgroups")
+            {
+                return "GoodForGroups";
+            }
+            else if (displayname.ToLower() == "delivery")
+            {
+                return "RestaurantsDelivery";
+            }
+            else if (displayname.ToLower() == "takeout")
+            {
+                return "RestaurantsTakeout";
+            }
+            else if (displayname.ToLower() == "freewifi")
+            {
+                return "WiFi";
+            }
+            else if (displayname.ToLower() == "bikeparking")
+            {
+                return "BikeParking";
+            }
+            else if (displayname.ToLower() == "breakfast")
+            {
+                return "GoodForMeal:breakfast";
+            }
+            else if (displayname.ToLower() == "brunch")
+            {
+                return "GoodForMeal:brunch";
+            }
+            else if (displayname.ToLower() == "lunch")
+            {
+                return "GoodForMeal:lunch";
+            }
+            else if (displayname.ToLower() == "dinner")
+            {
+                return "GoodForMeal:dinner";
+            }
+            else if (displayname.ToLower() == "dessert")
+            {
+                return "GoodForMeal:dessert";
+            }
+            else if (displayname.ToLower() == "latenight")
+            {
+                return "GoodForMeal:latenight";
+            }
+            else if (displayname.ToLower() == "$")
+            {
+                return "1";
+            }
+            else if (displayname.ToLower() == "$$")
+            {
+                return "2";
+            }
+            else if (displayname.ToLower() == "$$$")
+            {
+                return "3";
+            }
+            else if (displayname.ToLower() == "$$$$")
+            {
+                return "4";
+            }
+            else
+            {
+                return "";
+            }
+
+        }
+
         // Happens when add is clicked.
         // Adds the selected object to the categories list.
-        public void addSelected(object sender, EventArgs e)
+        public void addSelectedCat(object sender, EventArgs e)
         {
             for (int i = 0; i < selectedCats.Items.Count; i++)
             {
@@ -332,27 +767,102 @@ namespace cpts_451_yelp
                 // Tries to add the selected category to the list.
                 // Fails if there is nothing selected.
                 selectedCats.Items.Add(catList.SelectedValue.ToString());
+                catList.SelectedIndex = -1;
             }
             catch (System.NullReferenceException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("Please select a category first!");
+                // MessageBox.Show("Please select a category first!");
+            }
+        }
+
+        // Happens when add is clicked.
+        // Adds the selected object to the categories list.
+        public void addSelectedAtt(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tries to add the selected category to the list.
+                // Fails if there is nothing selected.
+                if (priceFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == priceFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(priceFilters.SelectedValue.ToString());
+                    priceFilters.SelectedIndex = -1;
+                }
+                if (attributeFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == attributeFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(attributeFilters.SelectedValue.ToString());
+                    attributeFilters.SelectedIndex = -1;
+                }
+                if (mealFilters.SelectedIndex > -1)
+                {
+                    for (int i = 0; i < selectedAtts.Items.Count; i++)
+                    {
+                        if (selectedAtts.Items[i].ToString() == mealFilters.SelectedValue.ToString())
+                        {
+                            // Console.WriteLine("Item found"); // For debugging
+                            return; // If the item is already in the list, it will not add it again
+                        }
+                    }
+                    selectedAtts.Items.Add(mealFilters.SelectedValue.ToString());
+                    mealFilters.SelectedIndex = -1;
+                }
+            }
+            catch (System.NullReferenceException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                // MessageBox.Show("Please select an attribute first!");
             }
         }
 
         // Removes the selected item from the list.
-        public void removeSelected(object sender, EventArgs e)
+        public void removeSelectedCat(object sender, EventArgs e)
         {
             try
             {
                 // Tries to remove the selected item.
                 // fails if nothing is selected.
                 selectedCats.Items.RemoveAt(selectedCats.SelectedIndex);
+                selectedCats.SelectedIndex = -1;
             }
             catch (System.ArgumentOutOfRangeException ex)
             {
                 Console.WriteLine(ex.Message.ToString());
-                MessageBox.Show("Please select a category first!");
+                // MessageBox.Show("Please select a category first!");
+            }
+        }
+
+
+        // Removes the selected item from the list.
+        public void removeSelectedAtt(object sender, EventArgs e)
+        {
+            try
+            {
+                // Tries to remove the selected item.
+                // fails if nothing is selected.
+                selectedAtts.Items.RemoveAt(selectedAtts.SelectedIndex);
+                selectedAtts.SelectedIndex = -1;
+            }
+            catch (System.ArgumentOutOfRangeException ex)
+            {
+                Console.WriteLine(ex.Message.ToString());
+                // MessageBox.Show("Please select an attribute first!");
             }
         }
 
@@ -380,6 +890,11 @@ namespace cpts_451_yelp
             catList.Items.Add(R.GetString(0));
         }
 
+        private void empty(NpgsqlDataReader R)
+        {
+            // For inserting
+        }
+
         // Function that adds the businesses to the grid data store.
         private void queryBusinessHelper(NpgsqlDataReader R)
         {
@@ -394,15 +909,15 @@ namespace cpts_451_yelp
                 zip = R.GetString(3), // zip
                 bid = R.GetString(4), // business id
                 addy = R.GetString(5), // address
-                // dist = R.GetDouble(6), // distance from user
-                stars = R.GetDouble(6), // number of stars
-                tips = R.GetInt32(7), // number of tips
-                checkins = R.GetInt32(8) // number of check ins
+                dist = Math.Round(R.GetDouble(6), 2), // distance from user
+                stars = R.GetDouble(7), // number of stars
+                tips = R.GetInt32(8), // number of tips
+                checkins = R.GetInt32(9) // number of check ins
             });
         }
 
         // Used in the event handling for the DropDown menus. Needs to be here.
-        protected virtual void OnSelectedValueChangec()
+        protected virtual void OnSelectedValueChanged()
         {
             EventHandler<EventArgs> handler = SelectedValueChanged;
             if (null != Handler) handler(this, EventArgs.Empty);
@@ -422,9 +937,27 @@ namespace cpts_451_yelp
             if (null != Handler) handler(this, EventArgs.Empty);
         }
 
+        protected virtual void OnClosed()
+        {
+            EventHandler<EventArgs> handler = Closed;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+        protected virtual void OnSelectedIndexChanged()
+        {
+            EventHandler<EventArgs> handler = SelectedIndexChanged;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
+
         // Adds the columns to the grid.
         private void addColGrid()
         {
+            SortStore.Add("Name");
+            SortStore.Add("Address");
+            SortStore.Add("Distance");
+            SortStore.Add("Stars");
+            SortStore.Add("Tips");
+            SortStore.Add("Check-ins");
+
             grid.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("name"),
@@ -516,9 +1049,73 @@ namespace cpts_451_yelp
             grid.Size = new Size(1000, 1000);
             layout.DefaultSpacing = new Size(5, 5);
 
+            SelectSort.DataStore = SortStore;
+
             layout.BeginHorizontal();
 
             layout.BeginVertical();
+
+            layout.BeginHorizontal();
+            layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(user);
+            layout.EndVertical();
+            layout.AddAutoSized(userlogin);
+            layout.EndHorizontal();
+
+            layout.BeginVertical();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "User Name:" });
+            layout.AddAutoSized(usernameBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Yelping Since:" });
+            layout.AddAutoSized(dateBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Stars:" });
+            layout.AddAutoSized(starsBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Number of Fans:" });
+            layout.AddAutoSized(fansBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Funny:" });
+            layout.AddAutoSized(funnyBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Cool:" });
+            layout.AddAutoSized(coolBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Useful:" });
+            layout.AddAutoSized(usefulBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Number of Tips:" });
+            layout.AddAutoSized(tipcountBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Number of Likes:" });
+            layout.AddAutoSized(totallikesBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Latitude:" });
+            layout.AddAutoSized(latitudeBox);
+            layout.EndHorizontal();
+            layout.BeginHorizontal();
+            layout.AddAutoSized(new Label { Text = "Longitude:" });
+            layout.AddAutoSized(longitudeBox);
+            layout.EndHorizontal();
+            layout.AddAutoSized(updateLocation);
+            layout.EndVertical();
+
+            layout.EndGroup();
+            layout.EndHorizontal();
+
             layout.BeginGroup("Location", new Padding(10, 10, 10, 10));
 
             layout.BeginHorizontal();
@@ -539,42 +1136,18 @@ namespace cpts_451_yelp
             layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
             layout.AddAutoSized(new Label { Text = "Zip Code" });
             layout.AddAutoSized(zipList);
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
-
-            layout.BeginGroup("Business Category", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Categories" });
-            layout.AddAutoSized(catList);
-            layout.BeginHorizontal();
-            layout.AddAutoSized(add);
-            layout.AddAutoSized(remove);
-            layout.EndHorizontal();
+            layout.AddAutoSized(new Label { Text = "Businesses in State:" });
+            layout.AddAutoSized(stnum);
+            layout.AddAutoSized(new Label { Text = "Businesses in City:" });
+            layout.AddAutoSized(ctnum);
             layout.EndVertical();
             layout.EndHorizontal();
 
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Selected" });
-            layout.AddAutoSized(selectedCats);
-            layout.BeginCentered();
-            layout.AddAutoSized(search);
-            layout.EndCentered();
-            layout.EndVertical();
-            layout.EndHorizontal();
             layout.EndGroup();
 
-            layout.BeginHorizontal();
-            layout.BeginGroup("User Info", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(user);
-            layout.EndVertical();
-            layout.EndHorizontal();
+            layout.BeginGroup("Sort By", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(SelectSort);
             layout.EndGroup();
-            layout.EndHorizontal();
 
             layout.EndVertical();
 
@@ -586,6 +1159,71 @@ namespace cpts_451_yelp
             layout.EndGroup();
             layout.EndVertical();
 
+            layout.BeginVertical();
+
+            layout.BeginGroup("Categories", new Padding(10, 10, 10, 10));
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Category" });
+            layout.AddAutoSized(catList);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected Categories" });
+            layout.AddAutoSized(selectedCats);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add_cat);
+            layout.AddAutoSized(remove_cat);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.EndGroup();
+
+            layout.BeginGroup("Filters", new Padding(10, 10, 10, 10));
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Price" });
+            layout.AddAutoSized(priceFilters);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Attributes" });
+            layout.AddAutoSized(attributeFilters);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Meal" });
+            layout.AddAutoSized(mealFilters);
+            layout.BeginHorizontal();
+            layout.AddAutoSized(add_att);
+            layout.AddAutoSized(remove_att);
+            layout.EndHorizontal();
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.BeginHorizontal();
+            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
+            layout.AddAutoSized(new Label { Text = "Selected Attributes" });
+            layout.AddAutoSized(selectedAtts);
+            layout.EndVertical();
+            layout.EndHorizontal();
+
+            layout.EndGroup();
+
+            layout.BeginCentered();
+            layout.AddAutoSized(search);
+            layout.EndCentered();
+
+            layout.EndVertical();
 
             layout.EndHorizontal();
         }
