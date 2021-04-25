@@ -232,8 +232,8 @@ namespace cpts_451_yelp
             {
                 if ((B.bid != null) && (B.bid.ToString().CompareTo("") != 0))
                 {
-                    GraphForm gwindow = new GraphForm(B.bid);
-                    gwindow.Show();
+                    BusinessForm bwindow = new BusinessForm(B, currentUser);
+                    bwindow.Show();
                 }
             }
             catch (System.InvalidOperationException ex)

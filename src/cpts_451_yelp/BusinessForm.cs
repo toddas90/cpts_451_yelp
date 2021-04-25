@@ -20,6 +20,11 @@ namespace cpts_451_yelp
             Text = "Like 👍"
         };
 
+        Button checkinGraph = new Button // Button for adding a like
+        {
+            Text = "Graph"
+        };
+
         Button checkIn = new Button //Button for checking into a business
         {
             Text = "Check In"
@@ -108,6 +113,7 @@ namespace cpts_451_yelp
             addLike.Click += new EventHandler<EventArgs>(addLikeHelper);
             // check in button event 
             checkIn.Click += new EventHandler<EventArgs>(addCheckInHelper);
+            checkinGraph.Click += new EventHandler<EventArgs>(openGraph);
         }
 
         // Loads the tips into the grid
@@ -130,6 +136,12 @@ namespace cpts_451_yelp
                 s.executeQuery(sqlStr2, loadBusinessFriendTipsHelper, true);
                 friend_grid.DataStore = friend_data;
             }
+        }
+
+        private void openGraph(object sender, EventArgs e)
+        {
+            GraphForm gwindow = new GraphForm(bus.bid);
+            gwindow.Show();
         }
 
         private void loadBusinessHours()
@@ -374,6 +386,7 @@ namespace cpts_451_yelp
             layout.BeginVertical();
             layout.AddAutoSized(addLike);
             layout.AddAutoSized(checkIn);
+            layout.AddAutoSized(checkinGraph);
             layout.EndVertical();
 
             layout.EndHorizontal();
