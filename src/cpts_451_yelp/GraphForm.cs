@@ -27,7 +27,6 @@ namespace cpts_451_yelp
         // gets checkin data from the database
         private void loadCheckinData(string bid)
         {
-            bid = "--KQsXc-clkO7oHRqGzSzg"; // for testing
             string cmd = @"SELECT EXTRACT(month from checkindate) as month, count(*) as count 
                            FROM checksin 
                            WHERE businessid = '" + bid + @"' 
@@ -37,25 +36,31 @@ namespace cpts_451_yelp
 
         private void checkinQueryResult(NpgsqlDataReader R)
         {
+            // no query data, this means the business has no checkins
+            if (!R.IsOnRow)
+                return;
+            
             // set checkin count values using query result
-            while (R.Read())
+            do
             {
-                int month = R.GetInt32(0);
+                double month = R.GetDouble(0);
                 int count = R.GetInt32(1);
 
-                this.checkinCounts[month - 1] = count;
-            }
+                this.checkinCounts[(int)month - 1] = count;
+            } while (R.Read());
         }
 
         // creates the graph window
         public void createUI()
         {
             // create the bar series
-            var series = new OxyPlot.Series.BarSeries()
+            var series = new OxyPlot.Series.BarSeries
             {
                 StrokeColor = OxyPlot.OxyColors.Black,
-                FillColor = OxyPlot.OxyColors.Blue,
-                StrokeThickness = 1
+                FillColor = OxyPlot.OxyColors.Orange,
+                StrokeThickness = 1,
+                LabelPlacement = OxyPlot.Series.LabelPlacement.Inside,
+                LabelFormatString = "{0:}"
             };
 
             // add data to bar series
