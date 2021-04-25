@@ -273,12 +273,9 @@ namespace cpts_451_yelp
             try
             {
                 uwindow.Show(); // Displays the page
-<<<<<<< HEAD
 
                 // Sets the user in here to the one selected in the user page
                 //currentUser = uwindow.currentUser;
-=======
->>>>>>> 92000d1b192a752950227481f1dc6b83fb2af589
             }
             catch (System.InvalidOperationException ex)
             {
