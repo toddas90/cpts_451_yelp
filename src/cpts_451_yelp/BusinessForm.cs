@@ -25,6 +25,9 @@ namespace cpts_451_yelp
             Text = "Check In"
         };
 
+        ListBox categories = new ListBox();
+        ListBox attributes = new ListBox();
+
         //stuffs for buisness details 
         DayOfWeek wk = DateTime.Today.DayOfWeek;
 
@@ -87,6 +90,7 @@ namespace cpts_451_yelp
             createUI(bus.bid); // Puts everything where it belongs
             addColGrid(general_grid);
             addColGrid(friend_grid);
+            queryAttsAndCats();
             this.Content = layout; // Instantiates the layout
 
             businessname.Text = B.name;
@@ -167,6 +171,16 @@ namespace cpts_451_yelp
             });
         }
 
+        private void queryAttsAndCats()
+        {
+            String cmdCat = "SELECT DISTINCT categoryname FROM categories as c WHERE c.businessid = '" + bus.bid + "';";
+            s.executeQuery(cmdCat, CatsHelper, true);
+            String cmdAtt = "SELECT DISTINCT attributename FROM attributes as a WHERE a.attributename != 'RestaurantsPriceRange2' AND a.businessid = '" + bus.bid + "';";
+            s.executeQuery(cmdAtt, AttsHelper, true);
+            String cmdMoney = "SELECT DISTINCT value FROM attributes as a WHERE a.attributename = 'RestaurantsPriceRange2' AND a.businessid = '" + bus.bid + "';";
+            s.executeQuery(cmdMoney, MoneyHelper, true);
+        }
+
         // Adds the tips to the business!
         private void addTipHelper(object sender, EventArgs e)
         {
@@ -236,6 +250,41 @@ namespace cpts_451_yelp
             }
         }
 
+        private void CatsHelper(NpgsqlDataReader R)
+        {
+            categories.Items.Add(
+                R.GetString(0)
+            );
+        }
+
+        private void AttsHelper(NpgsqlDataReader R)
+        {
+            attributes.Items.Add(
+                R.GetString(0)
+            );
+        }
+
+        private void MoneyHelper(NpgsqlDataReader R)
+        {
+            string temp = R.GetString(0);
+            if (temp == "1")
+            {
+                attributes.Items.Add("$");
+            }
+            else if (temp == "2")
+            {
+                attributes.Items.Add("$$");
+            }
+            else if (temp == "3")
+            {
+                attributes.Items.Add("$$$");
+            }
+            else //temp is 4
+            {
+                attributes.Items.Add("$$$$");
+            }
+        }
+
         // Checks to see if the tip exists
         private void tipExists(NpgsqlDataReader R)
         {
@@ -274,7 +323,6 @@ namespace cpts_451_yelp
 
             layout.BeginVertical();
 
-
             layout.BeginGroup("Buisness Info", new Padding(10, 10, 10, 10));
             layout.AddRow(
                 new Label { Text = "Business Name:" },
@@ -287,6 +335,10 @@ namespace cpts_451_yelp
             layout.AddRow(
                 new Label { Text = "Today's Hours:" },
                 openHours
+            );
+            layout.AddRow(
+                categories,
+                attributes
             );
             layout.EndGroup();
 

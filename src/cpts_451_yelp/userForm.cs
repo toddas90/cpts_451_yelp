@@ -38,7 +38,7 @@ namespace cpts_451_yelp
         public userForm(UserInfo inUser) // Main Form
         {
             Title = "Friends"; // Title of Application
-            MinimumSize = new Size(600, 400); // Default resolution
+            MinimumSize = new Size(1700, 720); // Default resolution
 
             addColFriendGrid();
             addColTipGrid();
@@ -200,8 +200,8 @@ namespace cpts_451_yelp
         {
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
-            friendsGrid.Size = new Size(500, 500);
-            latestTips.Size = new Size(500, 500);
+            friendsGrid.Size = new Size(450, 650);
+            latestTips.Size = new Size(1200, 650);
 
             layout.BeginHorizontal();
 
