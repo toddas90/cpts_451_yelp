@@ -96,6 +96,8 @@ namespace cpts_451_yelp
         Label usefulBox = new Label(); // number of useful
         Label tipcountBox = new Label(); // number of tips
         Label totallikesBox = new Label(); // number of likes
+
+        DropDown SelectSort = new DropDown();
         TextBox latitudeBox = new TextBox
         {
             PlaceholderText = "Enter Latitude"
@@ -156,10 +158,6 @@ namespace cpts_451_yelp
             AllowColumnReordering = false
         };
 
-        Dictionary<string, string> attMoneyPairs = new Dictionary<string, string>();
-        Dictionary<string, string> attRegPairs = new Dictionary<string, string>();
-        Dictionary<string, string> attMealPairs = new Dictionary<string, string>();
-
         // Info about the currently logged in user
         UserInfo currentUser = new UserInfo();
 
@@ -171,6 +169,8 @@ namespace cpts_451_yelp
         // Creates a DataStore for the grid. This is how rows work I guess.
         DataStoreCollection<Business> data = new DataStoreCollection<Business>();
 
+        DataStoreCollection<String> SortStore = new DataStoreCollection<String>();
+
         // Event when something in a combobox is selected
         public event EventHandler<EventArgs> SelectedValueChanged;
 
@@ -181,9 +181,7 @@ namespace cpts_451_yelp
         public event EventHandler<EventArgs> Click;
 
         public event EventHandler<EventArgs> Closed;
-
-        // public event EventHandler<GridColumnEventArgs> ColumnHeaderClick;
-
+        public event EventHandler<EventArgs> DropDownClosed;
 
         // Main Form where everything happens
         public MainForm()
@@ -198,6 +196,7 @@ namespace cpts_451_yelp
             this.Content = layout; // Instantiates the layout
             queryState(); // Put states in drop down
             populateFilters(); // Adds the filters to the lists
+            SelectSort.SelectedIndex = 0;
 
 
             // These attach the event handlers to the specific functions.
@@ -216,7 +215,7 @@ namespace cpts_451_yelp
             userlogin.Click += new EventHandler<EventArgs>(loginWindow);
             updateLocation.Click += new EventHandler<EventArgs>(insertLocation);
             updateLocation.Click += new EventHandler<EventArgs>(queryBusiness);
-            // grid.ColumnHeaderClick += new EventHandler<GridColumnEventArgs>(sortColumn);
+            SelectSort.DropDownClosed += new EventHandler<EventArgs>(queryBusiness);
         }
 
         // Creates the Business Details Window and passes along the business id of the
@@ -497,7 +496,7 @@ namespace cpts_451_yelp
                                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
-                                    + @"' ORDER BY businessname";
+                                    + @"' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets the data in the grid
             }
@@ -526,7 +525,7 @@ namespace cpts_451_yelp
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
-                    + @"' ORDER BY businessname";
+                    + @"' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets the data in the grid
             }
@@ -555,7 +554,7 @@ namespace cpts_451_yelp
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString()
-                    + @"' ORDER BY businessname";
+                    + @"' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets the data in the grid
             }
@@ -577,9 +576,41 @@ namespace cpts_451_yelp
                     stateList.SelectedValue.ToString() + @"' AND businesscity = 
                     '" + cityList.SelectedValue.ToString() + @"' AND 
                     businesspostalcode = '" + zipList.SelectedValue.ToString() +
-                    "' ORDER BY businessname";
+                    "' ORDER BY " + getSort() + ";";
                 s.executeQuery(cmd, queryBusinessHelper, true);
                 grid.DataStore = data; // Sets data in grid
+            }
+        }
+
+        public string getSort()
+        {
+            if (SelectSort.SelectedIndex == 0)
+            {
+                return "businessname ASC";
+            }
+            else if (SelectSort.SelectedIndex == 1)
+            {
+                return "businessstreetaddress ASC";
+            }
+            else if (SelectSort.SelectedIndex == 2)
+            {
+                return "getdistance ASC";
+            }
+            else if (SelectSort.SelectedIndex == 3)
+            {
+                return "stars DESC";
+            }
+            else if (SelectSort.SelectedIndex == 4)
+            {
+                return "tipcount DESC";
+            }
+            else if (SelectSort.SelectedIndex == 5)
+            {
+                return "checkincount DESC";
+            }
+            else
+            {
+                return "businessname ASC";
             }
         }
 
@@ -911,16 +942,22 @@ namespace cpts_451_yelp
             EventHandler<EventArgs> handler = Closed;
             if (null != Handler) handler(this, EventArgs.Empty);
         }
-
-        // protected virtual void OnColumnHeaderClick()
-        // {
-        //     EventHandler<GridColumnEventArgs> handler = ColumnHeaderClick;
-        //     if (null != Handler) handler(this, GridColumnEventArgs.Empty);
-        // }
+        protected virtual void OnDropDownClosed()
+        {
+            EventHandler<EventArgs> handler = DropDownClosed;
+            if (null != Handler) handler(this, EventArgs.Empty);
+        }
 
         // Adds the columns to the grid.
         private void addColGrid()
         {
+            SortStore.Add("Name");
+            SortStore.Add("Address");
+            SortStore.Add("Distance");
+            SortStore.Add("Stars");
+            SortStore.Add("Tips");
+            SortStore.Add("Check-ins");
+
             grid.Columns.Add(new GridColumn
             {
                 DataCell = new TextBoxCell("name"),
@@ -1012,6 +1049,8 @@ namespace cpts_451_yelp
             grid.Size = new Size(1000, 1000);
             layout.DefaultSpacing = new Size(5, 5);
 
+            SelectSort.DataStore = SortStore;
+
             layout.BeginHorizontal();
 
             layout.BeginVertical();
@@ -1101,6 +1140,8 @@ namespace cpts_451_yelp
             layout.AddAutoSized(stnum);
             layout.AddAutoSized(new Label { Text = "Businesses in City:" });
             layout.AddAutoSized(ctnum);
+            layout.AddAutoSized(new Label { Text = "Sort By:" });
+            layout.AddAutoSized(SelectSort);
             layout.EndVertical();
             layout.EndHorizontal();
 
