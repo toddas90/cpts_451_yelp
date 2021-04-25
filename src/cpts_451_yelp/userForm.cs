@@ -8,14 +8,10 @@ namespace cpts_451_yelp
     // Class for the user details window.
     public partial class userForm : Form
     {
-        // Click event handler
-        public event EventHandler<EventArgs> Click;
-
-        // Selection event handler for boxes
-        public event EventHandler<EventArgs> SelectedValueChanged;
 
         // Data store for the tips info
-        DataStoreCollection<TipInfo> data = new DataStoreCollection<TipInfo>();
+        DataStoreCollection<UserInfo> friendData = new DataStoreCollection<UserInfo>();
+        DataStoreCollection<TipInfo> latestTipsData = new DataStoreCollection<TipInfo>();
 
         // Grid for friends of the user
         GridView friendsGrid = new GridView<TipInfo>
@@ -24,155 +20,197 @@ namespace cpts_451_yelp
             AllowEmptySelection = true
         };
 
+        GridView latestTips = new GridView<TipInfo>
+        {
+            AllowMultipleSelection = true,
+            AllowEmptySelection = true
+        };
+
         // Bunch of gross variables.
         DynamicLayout layout = new DynamicLayout(); // Layout for the page
-        TextBox nameBox = new TextBox // For user to log-in
-        {
-            PlaceholderText = "Name"
-        };
 
-        TextBox usernameBox = new TextBox(); // name of user
-        TextBox starsBox = new TextBox(); // number of stars
-        TextBox dateBox = new TextBox(); // date joined
-        TextBox fansBox = new TextBox(); // number of fans
-        TextBox funnyBox = new TextBox(); // number of funny
-        TextBox coolBox = new TextBox(); // number of cool
-        TextBox usefulBox = new TextBox(); // number of useful
-        TextBox tipcountBox = new TextBox(); // number of tips
-        TextBox totallikesBox = new TextBox(); // number of likes
-        TextBox latitudeBox = new TextBox(); // latitude of user
-        TextBox longitudeBox = new TextBox(); // longitude of user
-        ListBox nameList = new ListBox // Box of searched names
-        {
-            Size = new Size(150, 100)
-        };
-
-        Button search = new Button // button to search for name
-        {
-            Text = "Search"
-        };
         SharedInfo s = new SharedInfo(); // Shared info
 
-        public UserInfo currentUser = new UserInfo(); // To store user information
+        private UserInfo currentUser = new UserInfo();
+
 
         // Main entry point for user window.
-        public userForm() // Main Form
+        public userForm(UserInfo inUser) // Main Form
         {
-            Title = "User Details"; // Title of Application
-            MinimumSize = new Size(600, 400); // Default resolution
+            Title = "Friends"; // Title of Application
+            MinimumSize = new Size(1700, 720); // Default resolution
 
+            addColFriendGrid();
+            addColTipGrid();
             createUI(); // Puts everything where it belongs
             this.Content = layout; // Instantiates the layout
 
-            // Events are attached to event handlers here
-            search.Click += new EventHandler<EventArgs>(queryName);
-            nameList.SelectedValueChanged += new EventHandler<EventArgs>(setUser);
+            currentUser = inUser;
+            queryFriends();
+            queryTips();
+
         }
 
-        // Queries the userid based on the name entered
-        public void queryName(object sender, EventArgs e)
+        public void queryFriends()
         {
-            nameList.Items.Clear(); // Clears the box
+            friendData.Clear();
 
-            // Query to select userid
-            string cmd = @"SELECT Users.userid, username FROM Users INNER JOIN UserLocation ON Users.userid = UserLocation.userid 
-                        INNER JOIN UserRating ON UserLocation.userid = UserRating.userid WHERE username = '" + nameSearch() + "'";
-            s.executeQuery(cmd, queryNameHelper, true);
+            string cmd = @"SELECT friendid, username, totalLikes, averageStars, yelpingSince 
+                        FROM FriendsWith, Users WHERE FriendsWith.friendid = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + "' ;";
+            s.executeQuery(cmd, queryFriendInfoHelper, true);
+            friendsGrid.DataStore = friendData;
         }
 
-        // Converts the text to a string
-        public String nameSearch()
+        public void queryTips()
         {
-            return nameBox.Text.ToString();
+            latestTipsData.Clear();
+
+            string cmd = @"SELECT friendid, recentDate, username, textwritten, businessname, businesscity
+                        FROM FriendsWith, Users, BusinessAddress, Business, Tip, (SELECT userid, MAX(datewritten) as recentDate FROM Tip GROUP BY userid) as Recent 
+                        WHERE FriendsWith.friendid = Users.UserID AND FriendsWith.UserId = '" + currentUser.UserID + @"'
+                        AND BusinessAddress.businessid = Business.businessid AND Tip.businessid = business.businessid AND Tip.datewritten = Recent.recentDate 
+                        AND Tip.userid = Recent.userid AND Recent.userid = Friendswith.friendid ORDER BY recentDate DESC;";
+            s.executeQuery(cmd, queryLatestTipsHelper, true);
+            latestTips.DataStore = latestTipsData;
         }
 
-        // Sets the user in userinfo depending on which
-        // userid was selected
-        public void setUser(object sender, EventArgs e)
+        private void queryFriendInfoHelper(NpgsqlDataReader R)
         {
-            if (nameList.SelectedIndex > -1) // Checks if one was selected
+            friendData.Add(new UserInfo() // Made a business class to keep the info together
             {
-                currentUser.UserID = nameList.SelectedValue.ToString();
-                currentUser.Username = nameBox.Text.ToString();
-                MessageBox.Show("Logged in as: " + currentUser.Username);
-            }
+                UserID = R.GetString(0),
+                Username = R.GetString(1), // name
+                likes = R.GetInt32(2), // total likes
+                avgStars = Math.Round(R.GetDouble(3), 2), //average stars
+                date = R.GetDateTime(4) // yelping since date
+            });
         }
 
-
-        // Sets the list of names
-        public void queryNameHelper(NpgsqlDataReader R)
+        private void queryLatestTipsHelper(NpgsqlDataReader R)
         {
-            nameList.Items.Add(R.GetString(0));
+            latestTipsData.Add(new TipInfo() // Made a business class to keep the info together
+            {
+                uid = R.GetString(0), // user id
+                date = (DateTime)R.GetTimeStamp(1), // name
+                name = R.GetString(2), // tip leaver's name
+                text = R.GetString(3), // text in the tip
+                businessname = R.GetString(4), // name of business
+                city = R.GetString(5) //city
+            });
         }
-
-        // Required for clicks
-        protected virtual void OnClick()
+        private void addColTipGrid()
         {
-            EventHandler<EventArgs> handler = Click;
-            if (null != Handler) handler(this, EventArgs.Empty);
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("name"),
+                HeaderText = "Name",
+                //Width = 300,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("businessname"),
+                HeaderText = "Business",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("city"),
+                HeaderText = "City",
+                //Width = 120,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("text"),
+                HeaderText = "Text",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            latestTips.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Date",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
         }
 
-        // Required for box selection
-        protected virtual void OnSelectedValueChanged()
+        private void addColFriendGrid()
         {
-            EventHandler<EventArgs> handler = SelectedValueChanged;
-            if (null != Handler) handler(this, EventArgs.Empty);
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("Username"),
+                HeaderText = "Name",
+                //Width = 300,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("likes"),
+                HeaderText = "Total Likes",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("avgStars"),
+                HeaderText = "Avg Stars",
+                //Width = 120,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
+            friendsGrid.Columns.Add(new GridColumn
+            {
+                DataCell = new TextBoxCell("date"),
+                HeaderText = "Yelping Since",
+                //Width = 60,
+                AutoSize = true,
+                Resizable = false,
+                Sortable = true,
+                Editable = false
+            });
         }
-
         // Puts all of the stuff where it belongs.
         public void createUI()
         {
             layout.DefaultSpacing = new Size(5, 5);
             layout.Padding = new Padding(10, 10, 10, 10);
+            friendsGrid.Size = new Size(450, 650);
+            latestTips.Size = new Size(1200, 650);
 
             layout.BeginHorizontal();
-
-            layout.BeginVertical();
-            layout.BeginGroup("Set Current User", new Padding(10, 10, 10, 10));
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Search User Name" });
-            layout.BeginHorizontal();
-            layout.AddAutoSized(nameBox);
-            layout.AddAutoSized(search);
-            layout.EndHorizontal();
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.BeginHorizontal();
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "User IDs" });
-            layout.AddAutoSized(nameList);
-            layout.EndVertical();
-            layout.EndHorizontal();
-            layout.EndGroup();
-            layout.EndVertical();
-
-            layout.BeginVertical();
-            layout.BeginGroup("User Information", new Padding(10, 10, 10, 10));
-            layout.BeginVertical(padding: new Padding(0, 0, 0, 10));
-            layout.AddAutoSized(new Label { Text = "Name: " });
-            layout.AddRow(usernameBox);
-            layout.AddAutoSized(new Label { Text = "Stars: " });
-            layout.AddRow(starsBox);
-            layout.AddAutoSized(new Label { Text = "Fans: " });
-            layout.AddRow(fansBox);
-            layout.AddAutoSized(new Label { Text = "Yelping Since: " });
-            layout.AddRow(dateBox);
-            layout.AddAutoSized(new Label { Text = "Funny: " });
-            layout.AddAutoSized(new Label { Text = "Cool: " });
-            layout.AddAutoSized(new Label { Text = "Useful: " });
-            layout.BeginHorizontal();
-            layout.AddRow(funnyBox);
-            layout.AddRow(coolBox);
-            layout.AddRow(usefulBox);
-            layout.EndHorizontal();
-            layout.EndVertical();
-            layout.EndGroup();
-            layout.EndVertical();
 
             layout.BeginHorizontal();
             layout.BeginGroup("Friends", new Padding(10, 10, 10, 10));
             layout.AddAutoSized(friendsGrid);
+            layout.EndGroup();
+            layout.BeginGroup("Latest Tips", new Padding(10, 10, 10, 10));
+            layout.AddAutoSized(latestTips);
             layout.EndGroup();
             layout.EndHorizontal();
 
