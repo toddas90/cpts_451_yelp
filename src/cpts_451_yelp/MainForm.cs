@@ -698,7 +698,7 @@ namespace cpts_451_yelp
             }
             else if (displayname.ToLower() == "takeout")
             {
-                return "RestaurantsTakeout";
+                return "RestaurantsTakeOut";
             }
             else if (displayname.ToLower() == "freewifi")
             {

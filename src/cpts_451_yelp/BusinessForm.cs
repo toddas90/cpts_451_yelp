@@ -227,6 +227,7 @@ namespace cpts_451_yelp
             {
                 MessageBox.Show("You must log in before you submit a tip!");
             }
+            newTip.Text = "";
         }
 
         // Adds a like to a tip
@@ -242,7 +243,7 @@ namespace cpts_451_yelp
 
             if (temp.name != null && user.UserID != "/0") // If the tip has been selected and the user is logged in
             {
-                Console.WriteLine("Like +1");
+                // Console.WriteLine("Like +1");
                 // Query to insert the like
                 string cmd = @"UPDATE Tip SET likes = '" + (temp.likes + 1) + "' WHERE businessid = '" + bus.bid + "' AND userid = '" + temp.uid +
                                 "' AND datewritten = '" + temp.date.ToString("yyyy-MM-dd HH:mm:ss") + "';";
