@@ -11,3 +11,5 @@ cd into the correct directory.
 
 Next, launch the application using .NET Core  
 ```dotnet run```
+
+:)
